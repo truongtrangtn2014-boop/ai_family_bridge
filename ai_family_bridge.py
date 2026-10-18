@@ -32,36 +32,41 @@ def get_base64_of_image(image_path):
 
 img_base64 = get_base64_of_image("background.png")
 
-# --- 4. CSS TÙY CHỈNH GIAO DIỆN HIỆN ĐẠI (COZE / DASHBOARD STYLE) ---
+# --- 4. CSS TÙY CHỈNH: SỬA LỖI MÀU CHỮ BỊ ẨN & TỐI ƯU ẢNH NỀN ---
 custom_css = f"""
 <style>
 .stApp {{
-    background: linear-gradient(rgba(5, 20, 45, 0.4), rgba(5, 20, 45, 0.4)), 
-                url("data:image/png;base64,{img_base64}") no-repeat center center fixed;
+    background: linear-gradient(rgba(5, 15, 35, 0.2), rgba(5, 15, 35, 0.2)), 
+                url("data:image/png;base64,{img_base64}") no-repeat top center fixed;
     background-size: cover;
 }}
 
+/* Ép màu chữ trên thanh bên (Sidebar) sáng rõ, không bị chìm */
 [data-testid="stSidebar"] {{
-    background: rgba(10, 25, 50, 0.92);
+    background: rgba(10, 25, 50, 0.95);
     backdrop-filter: blur(14px);
     border-right: 1px solid rgba(59, 130, 246, 0.3);
+}}
+
+[data-testid="stSidebar"] p, [data-testid="stSidebar"] span, [data-testid="stSidebar"] label, [data-testid="stSidebar"] div {{
+    color: #f1f5f9 !important;
 }}
 
 header {{visibility: hidden;}}
 
 /* Card tùy chỉnh phong cách Dashboard */
 .custom-card {{
-    background-color: rgba(255, 255, 255, 0.92);
+    background-color: rgba(255, 255, 255, 0.94);
     border-radius: 16px;
     padding: 20px;
     margin-bottom: 15px;
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease;
 }}
 .custom-card:hover {{
     transform: translateY(-3px);
-    box-shadow: 0 6px 25px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 6px 25px rgba(59, 130, 246, 0.2);
 }}
 
 /* Header Banner tối màu sang trọng */
@@ -71,7 +76,7 @@ header {{visibility: hidden;}}
     padding: 24px;
     border-radius: 16px;
     margin-bottom: 24px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }}
 
 h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {{
@@ -146,7 +151,8 @@ API_KEY = os.environ.get("GEMINI_API_KEY", "")
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3429/3429149.png", width=50)
     st.markdown("### 🌉 AI Family Bridge")
-    st.markdown("**Đề tài KHKT:** *Giải quyết khoảng trống giao tiếp gia đình*")
+    # Đã bỏ cụm từ "Đề tài KHKT: " theo yêu cầu
+    st.markdown("**Giải quyết khoảng trống giao tiếp gia đình**")
     st.markdown("---")
     
     if st.button("🏠 Về trang chủ", use_container_width=True):
