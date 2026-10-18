@@ -32,7 +32,7 @@ def get_base64_of_image(image_path):
 
 img_base64 = get_base64_of_image("background.png")
 
-# --- 4. CSS TÙY CHỈNH: SỬA LỖI MÀU CHỮ BỊ ẨN & TỐI ƯU ẢNH NỀN ---
+# --- 4. CSS TÙY CHỈNH: SỬA MÀU KHỐI VÀ MÀU CHỮ NỔI BẬT ---
 custom_css = f"""
 <style>
 .stApp {{
@@ -41,15 +41,30 @@ custom_css = f"""
     background-size: cover;
 }}
 
-/* Ép màu chữ trên thanh bên (Sidebar) sáng rõ, không bị chìm */
+/* Thiết kế lại thanh bên Sidebar */
 [data-testid="stSidebar"] {{
-    background: rgba(10, 25, 50, 0.95);
+    background: rgba(10, 25, 50, 0.98);
     backdrop-filter: blur(14px);
-    border-right: 1px solid rgba(59, 130, 246, 0.3);
+    border-right: 1px solid rgba(245, 158, 11, 0.3);
 }}
 
+/* Chữ thường trong sidebar đổi thành màu vàng tươi cho dễ nhìn */
 [data-testid="stSidebar"] p, [data-testid="stSidebar"] span, [data-testid="stSidebar"] label, [data-testid="stSidebar"] div {{
-    color: #f1f5f9 !important;
+    color: #fef08a !important;
+}}
+
+/* Các khối nút bấm trên sidebar: Nền vàng sẫm, chữ vàng tươi nổi bật */
+[data-testid="stSidebar"] .stButton button {{
+    background-color: #b45309 !important; /* Vàng sẫm */
+    color: #fef08a !important; /* Vàng tươi */
+    border: 1px solid #f59e0b !important;
+    border-radius: 10px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}}
+[data-testid="stSidebar"] .stButton button:hover {{
+    background-color: #d97706 !important;
+    color: #ffffff !important;
 }}
 
 header {{visibility: hidden;}}
@@ -151,7 +166,6 @@ API_KEY = os.environ.get("GEMINI_API_KEY", "")
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3429/3429149.png", width=50)
     st.markdown("### 🌉 AI Family Bridge")
-    # Đã bỏ cụm từ "Đề tài KHKT: " theo yêu cầu
     st.markdown("**Giải quyết khoảng trống giao tiếp gia đình**")
     st.markdown("---")
     
@@ -312,7 +326,7 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
             try:
                 contents = preloaded_files + [prompt]
                 response = client.models.generate_content(
-                    model='gemini-3.8-flash',
+                    model='gemini-2.5-flash',
                     contents=contents,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
