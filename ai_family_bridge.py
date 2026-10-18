@@ -32,7 +32,7 @@ def get_base64_of_image(image_path):
 
 img_base64 = get_base64_of_image("background.png")
 
-# --- 4. CSS TÙY CHỈNH: SỬA MÀU KHỐI VÀ MÀU CHỮ NỔI BẬT ---
+# --- 4. CSS TÙY CHỈNH: GIAO DIỆN SÁNG SỦA, MÀU CHỮ TRẮNG RÕ RÀNG ---
 custom_css = f"""
 <style>
 .stApp {{
@@ -41,26 +41,23 @@ custom_css = f"""
     background-size: cover;
 }}
 
-/* Thiết kế lại thanh bên Sidebar */
+/* Thanh bên Sidebar */
 [data-testid="stSidebar"] {{
     background: rgba(10, 25, 50, 0.98);
     backdrop-filter: blur(14px);
     border-right: 1px solid rgba(245, 158, 11, 0.3);
 }}
 
-/* Chữ thường trong sidebar đổi thành màu vàng tươi cho dễ nhìn */
 [data-testid="stSidebar"] p, [data-testid="stSidebar"] span, [data-testid="stSidebar"] label, [data-testid="stSidebar"] div {{
     color: #fef08a !important;
 }}
 
-/* Các khối nút bấm trên sidebar: Nền vàng sẫm, chữ vàng tươi nổi bật */
 [data-testid="stSidebar"] .stButton button {{
-    background-color: #b45309 !important; /* Vàng sẫm */
-    color: #fef08a !important; /* Vàng tươi */
+    background-color: #b45309 !important;
+    color: #fef08a !important;
     border: 1px solid #f59e0b !important;
     border-radius: 10px;
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }}
 [data-testid="stSidebar"] .stButton button:hover {{
     background-color: #d97706 !important;
@@ -77,11 +74,6 @@ header {{visibility: hidden;}}
     margin-bottom: 15px;
     border: 1px solid rgba(226, 232, 240, 0.9);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease;
-}}
-.custom-card:hover {{
-    transform: translateY(-3px);
-    box-shadow: 0 6px 25px rgba(59, 130, 246, 0.2);
 }}
 
 /* Header Banner tối màu sang trọng */
@@ -102,16 +94,19 @@ h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {
     color: #ffffff !important;
 }}
 
+/* Ép toàn bộ chữ trong khung chat (cả tin nhắn hỏi và câu trả lời) thành MÀU TRẮNG SÁNG TUYỆT ĐỐI */
+[data-testid="stChatMessage"], [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] span, [data-testid="stChatMessage"] li, [data-testid="stChatMessage"] strong, [data-testid="stChatMessage"] em {{
+    color: #ffffff !important;
+}}
+
 [data-testid="stChatMessage"] {{
-    background-color: rgba(15, 23, 42, 0.85) !important;
+    background-color: rgba(15, 23, 42, 0.9) !important;
     backdrop-filter: blur(12px);
     border-radius: 16px;
-    padding: 14px 18px;
-    margin-bottom: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}}
-[data-testid="stChatMessage"] p, [data-testid="stChatMessage"] span {{
-    color: #ffffff !important;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }}
 </style>
 """
