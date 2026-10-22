@@ -6,18 +6,9 @@ import streamlit as st
 from google import genai
 from google.genai import types
 
-# --- 1. CẤU HÌNH API KEY BẢO MẬT & 6 TÀI LIỆU NGHIÊN CỨU CHUẨN HÓA ---
+# --- 1. CẤU HÌNH API KEY BẢO MẬT ---
 if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
-
-DEFAULT_DOCS = [
-    "Nghien_cuu_xung_dot_THPT_Ha_Noi.pdf",
-    "Luan_an_TS_Nguyen_Thi_Hong_Hanh_2023.pdf",
-    "Phat_huy_vai_tro_gia_dinh_Le_Xuan_Duc.pdf",
-    "Sach_The_he_lo_au_Jonathan_Haidt.pdf",
-    "Thuc_trang_gan_bo_vi_thanh_nien.pdf",
-    "Trach_nhiem_gia_dinh_mang_xa_hoi_Pham_Thi_Khanh.pdf"
-]
 
 # --- 2. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
@@ -116,34 +107,10 @@ h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# --- 5. TỰ ĐỘNG NẠP 6 TÀI LIỆU NGẦM VÀO GEMINI ---
+# Khởi tạo Client Gemini
 client = genai.Client()
 
-@st.cache_resource
-def load_default_documents():
-    processed = []
-    missing = []
-    errors = []
-    for doc_name in DEFAULT_DOCS:
-        if os.path.exists(doc_name):
-            try:
-                mime_type = "application/pdf" if doc_name.endswith(".pdf") else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                with open(doc_name, "rb") as f_to_upload:
-                    gemini_file = client.files.upload(
-                        file=f_to_upload,
-                        config=types.UploadFileConfig(mime_type=mime_type)
-                    )
-                processed.append((doc_name, gemini_file))
-            except Exception as e:
-                errors.append(f"Lỗi file {doc_name}: {e}")
-        else:
-            missing.append(doc_name)
-    return processed, missing, errors
-
-loaded_docs_info, missing_documents, document_errors = load_default_documents()
-preloaded_files = [item[1] for item in loaded_docs_info]
-
-# --- 6. KHỞI TẠO TRẠNG THÁI ỨNG DỤNG ---
+# --- 5. KHỞI TẠO TRẠNG THÁI ỨNG DỤNG ---
 if "interaction_logs" not in st.session_state:
     st.session_state.interaction_logs = [
         {"timestamp": "2026-10-18 09:00", "category": "Tập đối thoại (Role-play)", "content": "Học sinh thực hành từ chối áp lực chọn ngành nghề."},
@@ -161,7 +128,7 @@ if "admin_logged_in" not in st.session_state:
 
 API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
-# --- 7. THANH BÊN (SIDEBAR) & CỔNG QUẢN TRỊ ---
+# --- 6. THANH BÊN (SIDEBAR) & CỔNG QUẢN TRỊ ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3429/3429149.png", width=50)
     st.markdown("### 🌉 AI Family Bridge")
@@ -188,32 +155,30 @@ with st.sidebar:
             st.session_state.current_mode = "Quản trị"
             st.rerun()
 
-# --- 8. GIAO DIỆN TÀI LIỆU NGHIÊN CỨU ---
+# --- 7. GIAO DIỆN TÀI LIỆU NGHIÊN CỨU ---
 if st.session_state.current_mode == "Tài liệu nghiên cứu":
     st.title("📚 Cơ sở lý luận và tài liệu nghiên cứu")
-    st.markdown("Hệ thống nạp toàn diện 6 tài liệu nghiên cứu khoa học làm ngữ cảnh chuyên sâu cho phản hồi của AI:")
-    if loaded_docs_info:
-        for name, remote_file in loaded_docs_info:
-            st.markdown(f"**📄 {name}**")
-            st.caption("Trạng thái: Đã sẵn sàng làm ngữ cảnh cho Gemini")
-    else:
-        st.warning("Chưa có tài liệu nào được nạp lên.")
-    
-    if missing_documents:
-        st.info(f"Các file chưa tìm thấy trong thư mục: {', '.join(missing_documents)}")
-        
+    st.markdown("Hệ thống đã tích hợp trực tiếp tri thức cốt lõi từ 6 công trình nghiên cứu khoa học vào bộ não AI:")
+    st.markdown("""
+    - **1. Nghiên cứu thực trạng Hà Nội (2025):** Các yếu tố tác động đến xung đột tâm lý giữa HS THPT và cha mẹ (vai trò 'cái tôi', phong cách làm cha mẹ).
+    - **2. Luận án Tiến sĩ Xã hội học (Nguyễn Thị Hồng Hạnh, 2023):** Thực trạng mâu thuẫn học tập, đời sống cá nhân, tự lập tài chính và cơ chế phản ứng.
+    - **3. Tạp chí Giáo dục lý luận (Lê Xuân Đức, 2023):** Phát huy vai trò giáo dục gia đình thông qua tình cảm và nêu gương.
+    - **4. 'Thế hệ lo âu' (Jonathan Haidt):** Tác động của điện thoại thông minh, mạng xã hội, thiếu ngủ và suy giảm sự chú ý.
+    - **5. Tạp chí Tâm lý - Giáo dục (2026):** Thực trạng gắn bó với cha, mẹ và bạn bè ở học sinh THPT.
+    - **6. Nghiên cứu bảo vệ trẻ trước MXH (Phạm Thị Khánh):** Trách nhiệm gia đình và rủi ro trực tuyến.
+    """)
     if st.button("⬅ Quay lại trang chủ"):
         st.session_state.current_mode = "Home"
         st.rerun()
     st.stop()
 
-# --- 9. GIAO DIỆN ADMIN DASHBOARD ---
+# --- 8. GIAO DIỆN ADMIN DASHBOARD ---
 if st.session_state.current_mode == "Quản trị":
     if not st.session_state.admin_logged_in:
         st.warning("Bạn cần đăng nhập quản trị từ thanh bên.")
         st.stop()
     st.title("📊 Hệ thống Quản trị Thực nghiệm - Admin Dashboard")
-    st.markdown("##### Theo dõi dữ liệu tương tác và đánh giá tác động của trợ lý AI đối với học sinh THPT dựa trên cơ sở khoa học.")
+    st.markdown("##### Theo dõi dữ liệu tương tác và đánh giá tác động của trợ lý AI đối với học sinh THPT.")
     st.markdown("---")
 
     logs_df = pd.DataFrame(st.session_state.interaction_logs)
@@ -239,7 +204,7 @@ if st.session_state.current_mode == "Quản trị":
         st.rerun()
     st.stop()
 
-# --- 10. GIAO DIỆN TRANG CHỦ (DASHBOARD CHỌN HOẠT ĐỘNG) ---
+# --- 9. GIAO DIỆN TRANG CHỦ ---
 if st.session_state.current_mode == "Home":
     st.markdown("""
     <div class="hero-banner">
@@ -296,26 +261,38 @@ if st.session_state.current_mode == "Home":
     st.markdown("<p style='text-align: center; color: #64748b; font-size: 12px; margin-top: 30px;'>AI đồng hành thấu cảm, không phán xét. Bạn có thể chia sẻ bất cứ lúc nào.</p>", unsafe_allow_html=True)
     st.stop()
 
-# --- 11. GIAO DIỆN TRÒ CHUYỆN (KHI CHỌN CÁC HOẠT ĐỘNG) ---
+# --- 10. GIAO DIỆN TRÒ CHUYỆN ---
 st.markdown(f"### 🌉 Đang ở chế độ: {st.session_state.current_mode}")
 if st.button("⬅ Quay lại danh sách hoạt động"):
     st.session_state.current_mode = "Home"
     st.rerun()
 st.markdown("---")
 
-# SYSTEM INSTRUCTION: ẤM ÁP, GIÀU CHẤT VĂN CHƯƠNG, SÚC TÍCH, DỰA TRÊN 6 TÀI LIỆU
+# CÁCH KHẮC PHỤC THỨ 3: NÉN TOÀN BỘ TRI THỨC 6 TÀI LIỆU VÀO SYSTEM INSTRUCTION
 system_instruction = f"""
-Bạn là "AI Family Bridge" - một người bạn đồng hành tâm lý vô cùng tinh tế, ấm áp, kết hợp sự sâu sắc của tri thức khoa học gia đình (dựa trên 6 tài liệu nghiên cứu về mâu thuẫn lứa tuổi THPT, "cái tôi", phong cách giáo dục, tác động thiết bị số, và sự gắn bó gia đình) và nét văn chương dung dị, giàu hình ảnh. Người dùng đang ở chế độ: {st.session_state.current_mode}.
+Bạn là "AI Family Bridge" - người bạn đồng hành tâm lý ấm áp, tinh tế dành cho học sinh THPT. Người dùng đang ở chế độ: {st.session_state.current_mode}.
 
-QUY TẮC PHẢN HỒI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
-1. **Phong cách ngữ điệu:** Sử dụng giọng văn mềm mại, ấm áp, gần gũi như lời thủ thỉ tâm tình giữa hai người bạn tri kỷ. Cách trò chuyện nhẹ nhàng, tình cảm, thể hiện sự chân thành, kiên nhẫn và thấu cảm sâu sắc.
-2. **Yếu tố văn chương & truyền thống:** Lồng ghép tự nhiên các hình ảnh giàu sức gợi (mái nhà, ngọn đèn, dòng sông, cánh cửa, khoảng lặng, mùa yêu thương) hoặc vận dụng linh hoạt ca dao, tục ngữ, lời ru, danh ngôn về tình cảm gia đình khi phù hợp (Ví dụ: “Công cha như núi Thái Sơn...", “Nhà là nơi để về”, “Đi khắp thế gian không ai tốt bằng mẹ...”).
-3. **Mẫu câu gợi ý đặc trưng:** Khi đưa ra giải pháp hoặc định hướng, hãy dùng các mẫu câu: 
+CƠ SỞ DỮ LIỆU & LÝ LUẬN KHOA HỌC BẠN PHẢI NẮM VỮNG VÀ VẬN DỤNG:
+1. Bản chất xung đột THPT (Nghiên cứu Hà Nội & Luận án TS 2023):
+   - 'Cái tôi' (ego) là nhân tố tác động mạnh nhất đến xung đột tâm lý giữa con và cha mẹ. Mỗi bên thường nhìn thấy 'cái tôi' của người kia lớn hơn của mình.
+   - Các chủ đề mâu thuẫn hàng đầu: Học tập (điểm số, học ở nhà, học thêm), Thiết bị công nghệ/Internet (thời gian sử dụng, nội dung mạng), Quan hệ bạn bè, và Tự lập tài chính (tiêu tiền).
+   - Tỷ lệ mâu thuẫn với mẹ thường cao hơn với bố do mẹ dành nhiều thời gian chăm sóc, nhắc nhở trực tiếp hơn.
+   - Phản ứng phổ biến nhất của học sinh khi có xung đột là 'Im lặng/Lảng tránh' (chiếm hơn 46%), tuy nhiên lảng tránh kéo dài dễ để lại tổn thương cảm xúc tiêu cực.
+2. Tác động của thiết bị số (Jonathan Haidt & Phạm Thị Khánh):
+   - Điện thoại thông minh và mạng xã hội gây ra 4 tổn hại cốt lõi: Thiếu giao tiếp xã hội trực tiếp, Thiếu ngủ, Phân tán sự chú ý, và Gây nghiện (vòng lặp dopamine). Phụ huynh lo lắng thường vì muốn bảo vệ con khỏi những rủi ro này.
+3. Giáo dục gia đình và sự gắn bó (Lê Xuân Đức & Đặng Hoàng Phúc):
+   - Giáo dục gia đình có sức mạnh lớn nhất khi diễn ra thông qua tình cảm và sự nêu gương, không phải áp đặt độc đoán.
+   - Vị thành niên vẫn gắn bó và tin cậy mẹ cao nhất, tiếp đến là cha. Gia đình là bến đỗ an toàn nhất.
+
+QUY TẮC PHẢN HỒI (BẮT BUỘC TUÂN THỦ):
+1. **Phong cách ngữ điệu:** Mềm mại, ấm áp, gần gũi như lời thủ thỉ tâm tình của tri kỷ. Chân thành, kiên nhẫn, tuyệt đối không phán xét.
+2. **Hình ảnh văn chương:** Lồng ghép tự nhiên hình ảnh ngọn đèn, mái nhà, dòng sông, cánh cửa, khoảng lặng, mùa yêu thương. Vận dụng ca dao, tục ngữ phù hợp (ví dụ: 'Công cha như núi Thái Sơn...', 'Nhà là nơi để về', 'Đi khắp thế gian không ai tốt bằng mẹ...').
+3. **Mẫu câu gợi ý:**
    - “Em có muốn thử…”
    - “Nếu em cảm thấy sẵn sàng, chúng ta có thể…”
    - “Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?”
    - “Nghe cậu kể, mình cảm nhận được rằng chuyện ấy đã khiến cậu buồn lòng nhiều lắm…. Nhưng bình tâm suy nghĩ, thử đặt mình vào vị trí của cha mẹ…”
-4. **Tiêu chí ngắn gọn, súc tích:** Vì ứng dụng chủ yếu dùng trên điện thoại di động, học sinh không thích đọc quá nhiều chữ dài dòng, hãy trình bày cô đọng, chia ý bằng các gạch đầu dòng ngắn gọn, súc tích nhưng đong đầy cảm xúc. Luôn khích lệ học sinh nuôi dưỡng lòng biết ơn, chuyển hóa vị thế cha mẹ thành những "người bạn lớn" dưới một mái nhà.
+4. **Định dạng:** Trả lời súc tích, ngắt đoạn ngắn, dùng gạch đầu dòng rõ ràng để dễ đọc trên điện thoại.
 """
 
 for message in st.session_state.messages:
@@ -333,13 +310,14 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
         "content": prompt
     })
 
-    # PHẢN HỒI BẰNG CƠ CHẾ STREAMING TRÊN GEMINI-3.8-FLASH ĐỂ TRẢ LỜI NGAY LẬP TỨC
+    # PHẢN HỒI STREAMING KHÔNG CẦN GỬI KÈM 6 FILE NẶNG - TỐC ĐỘ GÕ CHỮ TỨC THÌ
     with st.chat_message("assistant"):
         try:
             def response_generator():
+                # Chỉ truyền [prompt], không gửi file kèm theo mỗi tin nhắn
                 response_stream = client.models.generate_content_stream(
                     model='gemini-3.8-flash',
-                    contents=preloaded_files + [prompt],
+                    contents=[prompt],
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
                         temperature=0.7,
