@@ -236,12 +236,12 @@ if st.session_state.current_mode == "Quản trị":
 if st.session_state.current_mode == "Home":
     st.markdown("""
     <div class="hero-banner">
-        <div style="font-size: 13px; opacity: 0.8; margin-bottom: 6px; letter-spacing: 1px;">📁 KHÔNG GIAN KẾT NỐI</div>
+        <div style="font-size: 13px; opacity: 0.8; margin-bottom: 6px; letter-spacing: 1px;">📁 KHÔNG GIAN KẾT NỐI YÊU THƯƠNG</div>
         <h3 style="margin: 0 0 10px 0; font-size: 24px;">Hiểu mình. Hiểu bố mẹ. Gần nhau hơn.</h3>
-        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Lắng nghe cảm xúc, luyện tập đối thoại và xây dựng kết nối gia đình tích cực.</p>
+        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Lắng nghe cảm xúc, vun đắp đối thoại và tìm về chốn bình yên mang tên gia đình.</p>
         <div style="background: rgba(255,255,255,0.1); padding: 12px 16px; border-radius: 10px; margin-top: 15px; font-size: 13px;">
-            💬 <b>Xin chào! Hôm nay bạn muốn bắt đầu từ đâu?</b><br>
-            Bạn có thể chia sẻ điều đang băn khoăn hoặc luyện thử một cuộc trò chuyện với bố mẹ.
+            💬 <b>Góc nhỏ bình yên này luôn sẵn sàng lắng nghe bạn.</b><br>
+            Hãy thỏ thẻ những điều đang chông chênh trong lòng hoặc cùng mình tập dượt những nhịp cầu kết nối với đấng sinh thành nhé.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -252,23 +252,23 @@ if st.session_state.current_mode == "Home":
     with col1:
         if st.button("💬 **Tâm sự cùng AI**\n\n Chia sẻ điều khó nói", use_container_width=True):
             st.session_state.current_mode = "Tâm sự cùng AI"
-            st.session_state.messages = [{"role": "assistant", "content": "Yo! Cứ thoải mái trút hết bầu tâm sự với mình nhé. Chuyện khó nói cỡ nào cũng có gỡ được hết, kể đi mình nghe!"}]
+            st.session_state.messages = [{"role": "assistant", "content": "Ngồi xuống đây cùng mình nhé, bên ngọn đèn ấm áp này, cậu cứ thỏ thẻ hết những nỗi niềm khó nói trong lòng. Mình ở đây để lắng nghe và trân trọng mọi cảm xúc của cậu."}]
             st.rerun()
         
         if st.button("💙 **Hiểu cảm xúc**\n\n Gọi tên cảm xúc cá nhân", use_container_width=True):
             st.session_state.current_mode = "Hiểu cảm xúc"
-            st.session_state.messages = [{"portal": "assistant", "content": "Dạo này cảm xúc của bạn thế nào? Hơi chênh vênh hay đang áp lực vụ gì? Kể sơ qua sự việc, mình giúp bạn 'bắt mạch' cảm xúc ngay!"}]
+            st.session_state.messages = [{"role": "assistant", "content": "Dạo này chiếc lá cảm xúc trong lòng cậu đang chao nghiêng về gam màu nào? Hãy kể cho mình nghe đôi chút, để chúng ta cùng nhẹ nhàng thắp sáng lại tâm hồn nhé."}]
             st.rerun()
 
     with col2:
         if st.button("👥 **Tập đối thoại**\n\n Thử vai bố hoặc mẹ (Role-play)", use_container_width=True):
             st.session_state.current_mode = "Tập đối thoại"
-            st.session_state.messages = [{"role": "assistant", "content": "Sẵn sàng 'thực chiến' chưa nào? Bạn muốn mình đóng vai **Bố** hay **Mẹ**, và câu chuyện đang bị bất đồng là gì thế?"}]
+            st.session_state.messages = [{"role": "assistant", "content": "Chúng ta hãy cùng tập dượt những lời từ trái tim nha cậu. Cậu muốn mình nhẹ nhàng hóa thân thành **Bố** hay **Mẹ**, và câu chuyện đang khiến lòng cậu trăn trở là gì thế?"}]
             st.rerun()
 
         if st.button("📈 **Xem tiến bộ**\n\n Đánh giá kỹ năng ứng xử", use_container_width=True):
             st.session_state.current_mode = "Xem tiến bộ"
-            st.session_state.messages = [{"role": "assistant", "content": "Tuyệt vời! Hệ thống ghi nhận bạn rất chủ động luyện tập kỹ năng NVC. Giao tiếp trực diện chính là chìa khóa thu hẹp khoảng cách với gia đình đấy!"}]
+            st.session_state.messages = [{"role": "assistant", "content": "Mỗi bước đi nhỏ trên hành trình vun đắp yêu thương đều thật đáng quý. Cùng nhìn lại xem trái tim chúng ta đã lớn lên và xích lại gần mái nhà thân yêu thế nào rồi nhé."}]
             st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -282,11 +282,11 @@ if st.session_state.current_mode == "Home":
     if st.button("Luyện tình huống này ➔", type="primary"):
         st.session_state.current_mode = "Tập đối thoại"
         st.session_state.messages = [
-            {"role": "assistant", "content": "Kèo này quen thuộc nè! Giờ mình nhập vai Phụ huynh đang lo lắng chuyện bạn cắm mặt vào điện thoại nha. Thử mở lời với mình xem bạn sẽ nói sao nào?"}
+            {"role": "assistant", "content": "Ah, câu chuyện này quen thuộc quá phải không cậu? Giờ thì mình thử nhập vai Phụ huynh đang mang nỗi lo lắng cho con cái nha. Thử mở lời với mình xem cậu sẽ giãi bày thế nào nào?"}
         ]
         st.rerun()
 
-    st.markdown("<p style='text-align: center; color: #64748b; font-size: 12px; margin-top: 30px;'>AI đồng hành, không phán xét. Bạn có thể dừng bất cứ lúc nào.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #64748b; font-size: 12px; margin-top: 30px;'>AI đồng hành bằng sự thấu cảm và chân thành. Bạn có thể dừng bất cứ lúc nào.</p>", unsafe_allow_html=True)
     st.stop()
 
 # --- 11. GIAO DIỆN TRÒ CHUYỆN (KHI CHỌN CÁC HOẠT ĐỘNG) ---
@@ -296,15 +296,21 @@ if st.button("⬅ Quay lại danh sách hoạt động"):
     st.rerun()
 st.markdown("---")
 
-# CẬP NHẬT SYSTEM INSTRUCTION: NGẮN GỌN, CUỐN HÚT, HỢP GU GEN Z
+# CẬP NHẬT SYSTEM INSTRUCTION: NGỮ ĐIỆU MỀM MẠI, ẤM ÁP, VĂN CHƯƠNG, GẦN GŨI NHƯ HAI NGƯỜI BẠN
 system_instruction = f"""
-Bạn là "AI Family Bridge" - một người bạn đồng hành tâm lý cực kỳ tâm huyết, năng động và gần gũi với học sinh cấp Ba (Gen Z). Người dùng đang ở chế độ: {st.session_state.current_mode}.
+Bạn là "AI Family Bridge" - một người bạn đồng hành tâm hồn mềm mại, ấm áp và sâu lắng, như ngọn đèn soi chiếu trong những khoảng lặng của tuổi học trò. Người dùng đang ở chế độ: {st.session_state.current_mode}.
 
 QUY TẮC PHẢN HỒI (BẮT BUỘC):
-1. **Tuyệt đối không dài dòng, không dùng văn phong hàn lâm khô khan hay mở bài sướt mướt.** Đi thẳng vào vấn đề bằng giọng điệu ấm áp, trẻ trung, thấu cảm nhưng cực kỳ năng lượng.
-2. Dùng các từ ngữ thân thiện, hợp gu giới trẻ (ví dụ: "kèo này", "chill", "bắt mạch", "thực chiến",...).
-3. Khi phân tích hoặc luyện tập, hãy chia ý cực kỳ ngắn gọn, dùng gạch đầu dòng súc tích, dễ đọc trên điện thoại hoặc máy tính.
-4. Luôn khích lệ học sinh vượt qua rào cản tâm lý để chủ động trò chuyện trực diện với bố mẹ.
+1. **Sử dụng giọng văn mềm mại, ấm áp, gần gũi như lời thủ thỉ tâm tình giữa hai người bạn.** Cách trò chuyện nhẹ nhàng, tình cảm, thể hiện sự chân thành, kiên nhẫn và thấu cảm sâu sắc.
+2. **Lồng ghép các yếu tố văn chương một cách tự nhiên:** sử dụng hình ảnh giàu sức gợi, những liên tưởng tinh tế, câu văn giàu cảm xúc như mái nhà, ngọn đèn, dòng sông, cánh cửa, khoảng lặng hay những mùa yêu thương để diễn tả tình cảm gia đình.
+3. **Vận dụng linh hoạt ca dao, tục ngữ, lời ru và những câu nói giàu ý nghĩa về tình cảm gia đình** khi phù hợp hoàn cảnh (ví dụ: “Công cha như núi Thái Sơn, nghĩa mẹ như nước trong nguồn chảy ra”, “Nhà là nơi để về”, “Đi khắp thế gian không ai tốt bằng mẹ / Gánh nặng cuộc đời không ai khổ bằng cha”).
+4. **Khi đưa ra giải pháp hoặc gợi ý, hãy dùng các mẫu câu:** 
+   - “Em có muốn thử…”
+   - “Nếu em cảm thấy sẵn sàng, chúng ta có thể…”
+   - “Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?”
+5. **Trong quá trình tâm sự, hãy thể hiện tâm thế đón nhận cảm xúc bằng các câu thoại:** 
+   - “Nghe cậu kể, mình cảm nhận được rằng chuyện ấy đã khiến cậu buồn lòng nhiều lắm.... Nhưng bình tâm suy nghĩ, thử đặt mình vào vị trí của cha mẹ...”
+6. Luôn kiên nhẫn lắng nghe, xoa dịu những giông bão tuổi trẻ và khơi gợi tình yêu thương, sự kết nối chân thành, bền chặt giữa học sinh với gia đình.
 """
 
 for message in st.session_state.messages:
@@ -323,7 +329,7 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
     })
 
     with st.chat_message("assistant"):
-        with st.spinner("AI Family Bridge đang phân tích..."):
+        with st.spinner("AI Family Bridge đang lắng nghe và suy ngẫm..."):
             try:
                 contents = preloaded_files + [prompt]
                 response = client.models.generate_content(
