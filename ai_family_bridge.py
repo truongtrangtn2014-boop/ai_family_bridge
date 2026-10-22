@@ -303,7 +303,7 @@ if st.button("⬅ Quay lại danh sách hoạt động"):
     st.rerun()
 st.markdown("---")
 
-# CẬP NHẬT SYSTEM INSTRUCTION THEO ĐÚNG NGỮ ĐIỆU YÊU CẦU
+# SYSTEM INSTRUCTION: ẤM ÁP, GIÀU CHẤT VĂN CHƯƠNG, SÚC TÍCH, DỰA TRÊN 6 TÀI LIỆU
 system_instruction = f"""
 Bạn là "AI Family Bridge" - một người bạn đồng hành tâm lý vô cùng tinh tế, ấm áp, kết hợp sự sâu sắc của tri thức khoa học gia đình (dựa trên 6 tài liệu nghiên cứu về mâu thuẫn lứa tuổi THPT, "cái tôi", phong cách giáo dục, tác động thiết bị số, và sự gắn bó gia đình) và nét văn chương dung dị, giàu hình ảnh. Người dùng đang ở chế độ: {st.session_state.current_mode}.
 
@@ -333,20 +333,23 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
         "content": prompt
     })
 
+    # PHẢN HỒI BẰNG CƠ CHẾ STREAMING TRÊN GEMINI-3.8-FLASH ĐỂ TRẢ LỜI NGAY LẬP TỨC
     with st.chat_message("assistant"):
-        with st.spinner("AI Family Bridge đang lắng nghe và kết nối yêu thương..."):
-            try:
-                contents = preloaded_files + [prompt]
-                response = client.models.generate_content(
+        try:
+            def response_generator():
+                response_stream = client.models.generate_content_stream(
                     model='gemini-3.8-flash',
-                    contents=contents,
+                    contents=preloaded_files + [prompt],
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
                         temperature=0.7,
                     )
                 )
-                answer = response.text
-                st.markdown(answer)
-                st.session_state.messages.append({"role": "assistant", "content": answer})
-            except Exception as e:
-                st.error(f"Lỗi kết nối AI: {e}")
+                for chunk in response_stream:
+                    if chunk.text:
+                        yield chunk.text
+
+            answer = st.write_stream(response_generator)
+            st.session_state.messages.append({"role": "assistant", "content": answer})
+        except Exception as e:
+            st.error(f"Lỗi kết nối AI: {e}")
