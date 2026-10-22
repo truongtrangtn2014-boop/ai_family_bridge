@@ -11,7 +11,7 @@ if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 
 DEFAULT_DOCS = [
-    "Co_so_ly_luan_Chuyen_sau.docx",
+    "Co_so_ly_luan_Chuyen_sau.pdf",
     "Luan_an_TS_Nguyen_Thi_Hong_Hanh_2023.pdf.pdf"
 ]
 
