@@ -94,7 +94,7 @@ h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {
     color: #ffffff !important;
 }}
 
-/* Ép toàn bộ chữ trong khung chat thành MÀU TRẮNG SÁNG TUYỆT ĐỐI */
+/* Ép toàn bộ chữ trong khung chat (cả tin nhắn hỏi và câu trả lời) thành MÀU TRẮNG SÁNG TUYỆT ĐỐI */
 [data-testid="stChatMessage"], [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] span, [data-testid="stChatMessage"] li, [data-testid="stChatMessage"] strong, [data-testid="stChatMessage"] em {{
     color: #ffffff !important;
 }}
@@ -252,23 +252,23 @@ if st.session_state.current_mode == "Home":
     with col1:
         if st.button("💬 **Tâm sự cùng AI**\n\n Chia sẻ điều khó nói", use_container_width=True):
             st.session_state.current_mode = "Tâm sự cùng AI"
-            st.session_state.messages = [{"role": "assistant", "content": "Yo! Cứ thoải mái trút hết bầu tâm sự với mình nhé. Chuyện khó nói cỡ nào cũng có gỡ được hết, kể đi mình nghe!"}]
+            st.session_state.messages = [{"role": "assistant", "content": "Chào bạn! Mình ở đây để lắng nghe mọi tâm tư, áp lực hay cảm xúc khó nói của bạn mà không hề phán xét. Hãy chia sẻ với mình nhé!"}]
             st.rerun()
         
         if st.button("💙 **Hiểu cảm xúc**\n\n Gọi tên cảm xúc cá nhân", use_container_width=True):
             st.session_state.current_mode = "Hiểu cảm xúc"
-            st.session_state.messages = [{"portal": "assistant", "content": "Dạo này cảm xúc của bạn thế nào? Hơi chênh vênh hay đang áp lực vụ gì? Kể sơ qua sự việc, mình giúp bạn 'bắt mạch' cảm xúc ngay!"}]
+            st.session_state.messages = [{"role": "assistant", "content": "Cảm xúc của bạn lúc này thế nào? Hãy kể cho mình nghe một sự việc vừa xảy ra, mình sẽ giúp bạn gọi tên cảm xúc và tìm hiểu nhu cầu sâu kín bên trong nhé!"}]
             st.rerun()
 
     with col2:
         if st.button("👥 **Tập đối thoại**\n\n Thử vai bố hoặc mẹ (Role-play)", use_container_width=True):
             st.session_state.current_mode = "Tập đối thoại"
-            st.session_state.messages = [{"role": "assistant", "content": "Sẵn sàng 'thực chiến' chưa nào? Bạn muốn mình đóng vai **Bố** hay **Mẹ**, và câu chuyện đang bị bất đồng là gì thế?"}]
+            st.session_state.messages = [{"role": "assistant", "content": "Chúng ta bắt đầu tập dượt nhé! Bạn muốn mình đóng vai **Bố** hay **Mẹ**, và tình huống bất đồng hiện tại giữa bạn với phụ huynh là gì?"}]
             st.rerun()
 
         if st.button("📈 **Xem tiến bộ**\n\n Đánh giá kỹ năng ứng xử", use_container_width=True):
             st.session_state.current_mode = "Xem tiến bộ"
-            st.session_state.messages = [{"role": "assistant", "content": "Tuyệt vời! Hệ thống ghi nhận bạn rất chủ động luyện tập kỹ năng NVC. Giao tiếp trực diện chính là chìa khóa thu hẹp khoảng cách với gia đình đấy!"}]
+            st.session_state.messages = [{"role": "assistant", "content": "Hệ thống ghi nhận bạn đã tham gia các phiên luyện tập Giao tiếp phi bạo lực (NVC). Việc duy trì đối thoại trực diện giúp giảm đáng kể căng thẳng gia đình theo nghiên cứu khoa học!"}]
             st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -282,7 +282,7 @@ if st.session_state.current_mode == "Home":
     if st.button("Luyện tình huống này ➔", type="primary"):
         st.session_state.current_mode = "Tập đối thoại"
         st.session_state.messages = [
-            {"role": "assistant", "content": "Kèo này quen thuộc nè! Giờ mình nhập vai Phụ huynh đang lo lắng chuyện bạn cắm mặt vào điện thoại nha. Thử mở lời với mình xem bạn sẽ nói sao nào?"}
+            {"role": "assistant", "content": "Tuyệt vời, chúng ta cùng xử lý tình huống này nhé. Mình sẽ đóng vai Phụ huynh đang lo lắng về việc bạn dùng điện thoại nhiều. Bạn hãy thử mở lời với mình theo cách của bạn xem sao!"}
         ]
         st.rerun()
 
@@ -296,15 +296,9 @@ if st.button("⬅ Quay lại danh sách hoạt động"):
     st.rerun()
 st.markdown("---")
 
-# CẬP NHẬT SYSTEM INSTRUCTION: NGẮN GỌN, CUỐN HÚT, HỢP GU GEN Z
 system_instruction = f"""
-Bạn là "AI Family Bridge" - một người bạn đồng hành tâm lý cực kỳ tâm huyết, năng động và gần gũi với học sinh cấp Ba (Gen Z). Người dùng đang ở chế độ: {st.session_state.current_mode}.
-
-QUY TẮC PHẢN HỒI (BẮT BUỘC):
-1. **Tuyệt đối không dài dòng, không dùng văn phong hàn lâm khô khan hay mở bài sướt mướt.** Đi thẳng vào vấn đề bằng giọng điệu ấm áp, trẻ trung, thấu cảm nhưng cực kỳ năng lượng.
-2. Dùng các từ ngữ thân thiện, hợp gu giới trẻ (ví dụ: "kèo này", "chill", "bắt mạch", "thực chiến",...).
-3. Khi phân tích hoặc luyện tập, hãy chia ý cực kỳ ngắn gọn, dùng gạch đầu dòng súc tích, dễ đọc trên điện thoại hoặc máy tính.
-4. Luôn khích lệ học sinh vượt qua rào cản tâm lý để chủ động trò chuyện trực diện với bố mẹ.
+Bạn là "AI Family Bridge", một trợ lý AI chuyên gia về tâm lý học gia đình, kỹ năng giao tiếp phi bạo lực (NVC) và phương pháp đóng vai giả lập (Role-playing Coach). Người dùng đang chọn chế độ: {st.session_state.current_mode}.
+Hãy luôn giữ thái độ thấu cảm, ấm áp, định hướng học sinh vượt qua xu hướng "trốn chạy tương tác thực" để tự tin mở lời đối thoại trực diện với cha mẹ.
 """
 
 for message in st.session_state.messages:
