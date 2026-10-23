@@ -253,7 +253,7 @@ if st.session_state.current_mode == "Home":
     with col1:
         if st.button("💬 **Tâm sự cùng AI**\n\n Chia sẻ điều khó nói", use_container_width=True):
             st.session_state.current_mode = "Tâm sự cùng AI"
-            st.session_state.messages = [{"role": "assistant", "content": "Chào cậu! Mình ở đây để lắng nghe mọi tâm tư, áp lực hay cảm xúc khó nói của cậu mà không hề phán xét. Hãy chia sẻ với mình nhé..."}]
+            st.session_state.messages = [{"role": "assistant", "content": "AI Family Bridge ở đây để lắng nghe mọi tâm tư, áp lực hay cảm xúc khó nói của cậu mà không hề phán xét. Hãy chia sẻ với mình nhé..."}]
             st.rerun()
         
         if st.button("💙 **Hiểu cảm xúc**\n\n Gọi tên cảm xúc cá nhân", use_container_width=True):
