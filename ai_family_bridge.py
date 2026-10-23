@@ -1,3 +1,4 @@
+# --- name=ai_family_bridge.py ---
 import os
 import base64
 import datetime
@@ -11,7 +12,7 @@ if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 
 DEFAULT_DOCS = [
-    "Co_so_ly_luan_Chuyen_sau.docx",
+    "Co_so_ly_luan_Chuyen_sau.pdf",
     "Luan_an_TS_Nguyen_Thi_Hong_Hanh_2023.pdf.pdf"
 ]
 
@@ -94,7 +95,7 @@ h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {
     color: #ffffff !important;
 }}
 
-/* Ép toàn bộ chữ trong khung chat (cả tin nhắn hỏi và câu trả lời) thành MÀU TRẮNG SÁNG TUYỆT ĐỐI */
+/* Ép toàn bộ chữ trong khung chat thành MÀU TRẮNG SÁNG TUYỆT ĐỐI */
 [data-testid="stChatMessage"], [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] span, [data-testid="stChatMessage"] li, [data-testid="stChatMessage"] strong, [data-testid="stChatMessage"] em {{
     color: #ffffff !important;
 }}
@@ -173,7 +174,7 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-    st.markdown("🔒 **Cổng Quản trị Nhà trường (Admin)**")
+    st.markdown("🔒 **Cổng Admin**")
     admin_password_input = st.text_input("Mật khẩu quản trị:", type="password", placeholder="Nhập mật khẩu...")
     if admin_password_input == "admin2026":
         st.session_state.admin_logged_in = True
@@ -252,23 +253,23 @@ if st.session_state.current_mode == "Home":
     with col1:
         if st.button("💬 **Tâm sự cùng AI**\n\n Chia sẻ điều khó nói", use_container_width=True):
             st.session_state.current_mode = "Tâm sự cùng AI"
-            st.session_state.messages = [{"role": "assistant", "content": "Chào bạn! Mình ở đây để lắng nghe mọi tâm tư, áp lực hay cảm xúc khó nói của bạn mà không hề phán xét. Hãy chia sẻ với mình nhé!"}]
+            st.session_state.messages = [{"role": "assistant", "content": "Chào cậu! Mình ở đây để lắng nghe mọi tâm tư, áp lực hay cảm xúc khó nói của cậu mà không hề phán xét. Hãy chia sẻ với mình nhé..."}]
             st.rerun()
         
         if st.button("💙 **Hiểu cảm xúc**\n\n Gọi tên cảm xúc cá nhân", use_container_width=True):
             st.session_state.current_mode = "Hiểu cảm xúc"
-            st.session_state.messages = [{"role": "assistant", "content": "Cảm xúc của bạn lúc này thế nào? Hãy kể cho mình nghe một sự việc vừa xảy ra, mình sẽ giúp bạn gọi tên cảm xúc và tìm hiểu nhu cầu sâu kín bên trong nhé!"}]
+            st.session_state.messages = [{"role": "assistant", "content": "Cảm xúc của cậu lúc này thế nào? Hãy kể cho mình nghe một sự việc vừa xảy ra, mình sẽ cùng cậu gọi tên những góc khuất trong lòng nhé..."}]
             st.rerun()
 
     with col2:
         if st.button("👥 **Tập đối thoại**\n\n Thử vai bố hoặc mẹ (Role-play)", use_container_width=True):
             st.session_state.current_mode = "Tập đối thoại"
-            st.session_state.messages = [{"role": "assistant", "content": "Chúng ta bắt đầu tập dượt nhé! Bạn muốn mình đóng vai **Bố** hay **Mẹ**, và tình huống bất đồng hiện tại giữa bạn với phụ huynh là gì?"}]
+            st.session_state.messages = [{"role": "assistant", "content": "Chúng ta bắt đầu tập dượt nhé! Cậu muốn mình đóng vai **Bố** hay **Mẹ**, và tình huống bất đồng hiện tại giữa cậu với gia đình là gì nhỉ?"}]
             st.rerun()
 
         if st.button("📈 **Xem tiến bộ**\n\n Đánh giá kỹ năng ứng xử", use_container_width=True):
             st.session_state.current_mode = "Xem tiến bộ"
-            st.session_state.messages = [{"role": "assistant", "content": "Hệ thống ghi nhận bạn đã tham gia các phiên luyện tập Giao tiếp phi bạo lực (NVC). Việc duy trì đối thoại trực diện giúp giảm đáng kể căng thẳng gia đình theo nghiên cứu khoa học!"}]
+            st.session_state.messages = [{"role": "assistant", "content": "Hệ thống ghi nhận cậu đã tham gia rất nghiêm túc các phiên luyện tập. Việc duy trì đối thoại trực diện chính là ngọn đèn soi sáng khoảng cách giữa các thế hệ..."}]
             st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -282,11 +283,11 @@ if st.session_state.current_mode == "Home":
     if st.button("Luyện tình huống này ➔", type="primary"):
         st.session_state.current_mode = "Tập đối thoại"
         st.session_state.messages = [
-            {"role": "assistant", "content": "Tuyệt vời, chúng ta cùng xử lý tình huống này nhé. Mình sẽ đóng vai Phụ huynh đang lo lắng về việc bạn dùng điện thoại nhiều. Bạn hãy thử mở lời với mình theo cách của bạn xem sao!"}
+            {"role": "assistant", "content": "Nghe cậu kể, mình cảm nhận được rằng chuyện ấy đã khiến cậu buồn lòng nhiều lắm….Nhưng bình tâm suy nghĩ, thử đặt mình vào vị trí của cha mẹ, có lẽ ngọn nguồn cũng chỉ vì thương yêu mà thôi. Nếu cậu cảm thấy sẵn sàng, chúng ta có thể thử tập dượt tình huống này nhé!"}
         ]
         st.rerun()
 
-    st.markdown("<p style='text-align: center; color: #64748b; font-size: 12px; margin-top: 30px;'>AI đồng hành, không phán xét. Bạn có thể dừng bất cứ lúc nào.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #64748b; font-size: 12px; margin-top: 30px;'>AI đồng hành, lắng nghe bằng cả tấm lòng. Cậu có thể dừng bất cứ lúc nào.</p>", unsafe_allow_html=True)
     st.stop()
 
 # --- 11. GIAO DIỆN TRÒ CHUYỆN (KHI CHỌN CÁC HOẠT ĐỘNG) ---
@@ -296,9 +297,30 @@ if st.button("⬅ Quay lại danh sách hoạt động"):
     st.rerun()
 st.markdown("---")
 
+# CẬP NHẬT SYSTEM INSTRUCTION VỚI VĂN PHONG VÀ NGỮ ĐIỆU MỚI
 system_instruction = f"""
 Bạn là "AI Family Bridge", một trợ lý AI chuyên gia về tâm lý học gia đình, kỹ năng giao tiếp phi bạo lực (NVC) và phương pháp đóng vai giả lập (Role-playing Coach). Người dùng đang chọn chế độ: {st.session_state.current_mode}.
-Hãy luôn giữ thái độ thấu cảm, ấm áp, định hướng học sinh vượt qua xu hướng "trốn chạy tương tác thực" để tự tin mở lời đối thoại trực diện với cha mẹ.
+
+Hãy tuân thủ tuyệt đối các nguyên tắc về ngữ điệu, phong cách và định dạng sau trong mọi câu trả lời:
+
+1. **Giọng văn và thái độ:**
+   - Sử dụng giọng văn mềm mại, ấm áp, gần gũi như lời thủ thỉ tâm tình giữa hai người bạn. Cách trò chuyện nhẹ nhàng, tình cảm, thể hiện sự chân thành, kiên nhẫn và thấu cảm sâu sắc.
+   - Khi đón nhận cảm xúc của người dùng, hãy dùng cấu trúc phản hồi tâm lý: “Nghe cậu kể, mình cảm nhận được rằng chuyện ấy đã khiến cậu buồn lòng nhiều lắm….Nhưng bình tâm suy nghĩ, thử đặt mình vào vị trí của cha mẹ…”
+
+2. **Yếu tố văn chương và truyền thống gia đình:**
+   - Lồng ghép các yếu tố văn chương một cách tự nhiên: sử dụng hình ảnh giàu sức gợi, những liên tưởng tinh tế như mái nhà, ngọn đèn, dòng sông, cánh cửa, khoảng lặng hay những mùa yêu thương để diễn tả tình cảm gia đình.
+   - Vận dụng ca dao, tục ngữ, lời ru và những câu nói giàu ý nghĩa khi phù hợp với hoàn cảnh, ví dụ: 
+     + “Công cha như núi Thái Sơn, nghĩa mẹ như nước trong nguồn chảy ra.”
+     + “Nhà là nơi để về”
+     + “Đi khắp thế gian không ai tốt bằng mẹ / Gánh nặng cuộc đời không ai khổ bằng cha”…
+
+3. **Mẫu câu gợi ý giải pháp:**
+   - Với các giải pháp hoặc lời khuyên được đưa ra, cấu trúc câu gợi ý bắt buộc phải sử dụng một trong các mẫu sau:
+     + “Em có muốn thử…”
+     + “Nếu em cảm thấy sẵn sàng, chúng ta có thể…”
+     + “Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?”
+
+Luôn hướng dẫn người dùng vượt qua nỗi buồn, thấu hiểu phụ huynh và tự tin mở lời đối thoại trực diện để xây dựng kết nối gia đình tích cực.
 """
 
 for message in st.session_state.messages:
@@ -317,7 +339,7 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
     })
 
     with st.chat_message("assistant"):
-        with st.spinner("AI Family Bridge đang phân tích..."):
+        with st.spinner("AI Family Bridge đang lắng nghe và cùng tâm sự..."):
             try:
                 contents = preloaded_files + [prompt]
                 response = client.models.generate_content(
@@ -325,11 +347,11 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
                     contents=contents,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
-                        temperature=0.7,
+                        temperature=0.5,
                     )
                 )
                 answer = response.text
                 st.markdown(answer)
                 st.session_state.messages.append({"role": "assistant", "content": answer})
             except Exception as e:
-                st.error(f"Lỗi kết nối AI: {e}")
+                st.error(f"Hãy đợi tôi chút đang có lỗi kĩ thuật xảy ra: {e}")
