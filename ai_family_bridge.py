@@ -11,10 +11,8 @@ from google.genai import types
 if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 
-# Giữ lại 1 tài liệu cốt lõi duy nhất theo yêu cầu để giảm tải
-DEFAULT_DOCS = [
-    "Co_so_ly_luan_Chuyen_sau.pdf"
-]
+# Giữ lại 1 tài liệu cốt lõi duy nhất để tối ưu tốc độ phản hồi
+DEFAULT_DOC = "Co_so_ly_luan_Chuyen_sau.pdf"
 
 # --- 2. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
@@ -113,32 +111,24 @@ h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# --- 5. TỰ ĐỘNG NẠP TÀI LIỆU NGẦM VÀO GEMINI ---
+# --- 5. TẢI VÀ CACHE TÀI LIỆU TỐI ƯU ---
 client = genai.Client()
 
 @st.cache_resource
-def load_default_documents():
-    processed = []
-    missing = []
-    errors = []
-    for doc_name in DEFAULT_DOCS:
-        if os.path.exists(doc_name):
-            try:
-                mime_type = "application/pdf"
-                with open(doc_name, "rb") as f_to_upload:
-                    gemini_file = client.files.upload(
-                        file=f_to_upload,
-                        config=types.UploadFileConfig(mime_type=mime_type)
-                    )
-                processed.append((doc_name, gemini_file))
-            except Exception as e:
-                errors.append(f"Lỗi file {doc_name}: {e}")
-        else:
-            missing.append(doc_name)
-    return processed, missing, errors
+def load_cached_document():
+    if os.path.exists(DEFAULT_DOC):
+        try:
+            with open(DEFAULT_DOC, "rb") as f_to_upload:
+                gemini_file = client.files.upload(
+                    file=f_to_upload,
+                    config=types.UploadFileConfig(mime_type="application/pdf")
+                )
+            return gemini_file
+        except Exception as e:
+            return None
+    return None
 
-loaded_docs_info, missing_documents, document_errors = load_default_documents()
-preloaded_files = [item[1] for item in loaded_docs_info]
+preloaded_file = load_cached_document()
 
 # --- 6. KHỞI TẠO TRẠNG THÁI ỨNG DỤNG ---
 if "interaction_logs" not in st.session_state:
@@ -189,12 +179,11 @@ with st.sidebar:
 if st.session_state.current_mode == "Tài liệu nghiên cứu":
     st.title("📚 Cơ sở lý luận và tài liệu nghiên cứu")
     st.markdown("Tài liệu cốt lõi đang được sử dụng làm ngữ cảnh tham khảo cho AI:")
-    if loaded_docs_info:
-        for name, remote_file in loaded_docs_info:
-            st.markdown(f"**📄 {name}**")
-            st.caption("Trạng thái: Đã tải lên hệ thống Gemini thành công")
+    if preloaded_file:
+        st.markdown(f"**📄 {DEFAULT_DOC}**")
+        st.caption("Trạng thái: Đã tải lên và lưu đệm trên hệ thống Gemini thành công")
     else:
-        st.warning("Chưa tìm thấy tệp tài liệu `Co_so_ly_luan_Chuyen_sau.pdf` trong thư mục gốc của dự án trên GitHub.")
+        st.warning(f"Chưa tìm thấy tệp tài liệu `{DEFAULT_DOC}` trong thư mục gốc của dự án trên GitHub.")
     
     if st.button("⬅ Quay lại trang chủ"):
         st.session_state.current_mode = "Home"
@@ -341,13 +330,16 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
     with st.chat_message("assistant"):
         with st.spinner("AI Family Bridge đang lắng nghe và cùng tâm sự..."):
             try:
-                contents = preloaded_files + [prompt]
+                # Đưa file cache vào cùng câu hỏi (nếu file tồn tại)
+                contents = [preloaded_file, prompt] if preloaded_file else [prompt]
+                
                 response = client.models.generate_content(
                     model='gemini-3.8-flash',
                     contents=contents,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
                         temperature=0.5,
+                        max_output_tokens=1000, # Giới hạn độ dài phản hồi để tối ưu tốc độ trả lời
                     )
                 )
                 answer = response.text
