@@ -11,9 +11,9 @@ from google.genai import types
 if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 
+# Đã lược bỏ file nặng, chỉ giữ lại 1 tài liệu cốt lõi duy nhất theo yêu cầu
 DEFAULT_DOCS = [
-    "Co_so_ly_luan_Chuyen_sau.pdf",
-    "Luan_an_TS_Nguyen_Thi_Hong_Hanh_2023.pdf.pdf"
+    "Co_so_ly_luan_Chuyen_sau.pdf"
 ]
 
 # --- 2. CẤU HÌNH TRANG WEB ---
@@ -124,7 +124,7 @@ def load_default_documents():
     for doc_name in DEFAULT_DOCS:
         if os.path.exists(doc_name):
             try:
-                mime_type = "application/pdf" if doc_name.endswith(".pdf") else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                mime_type = "application/pdf"
                 with open(doc_name, "rb") as f_to_upload:
                     gemini_file = client.files.upload(
                         file=f_to_upload,
@@ -188,13 +188,13 @@ with st.sidebar:
 # --- 8. GIAO DIỆN TÀI LIỆU NGHIÊN CỨU ---
 if st.session_state.current_mode == "Tài liệu nghiên cứu":
     st.title("📚 Cơ sở lý luận và tài liệu nghiên cứu")
-    st.markdown("Các tài liệu này được dùng làm ngữ cảnh tham khảo cho phản hồi của AI.")
+    st.markdown("Tài liệu cốt lõi đang được sử dụng làm ngữ cảnh tham khảo cho AI:")
     if loaded_docs_info:
         for name, remote_file in loaded_docs_info:
             st.markdown(f"**📄 {name}**")
-            st.caption(f"Trạng thái: đã tải lên Gemini")
+            st.caption(f"Trạng thái: Đã tải lên hệ thống Gemini thành công")
     else:
-        st.warning("Chưa có tài liệu nào được tải lên Gemini.")
+        st.warning("Chưa tìm thấy tệp tài liệu `Co_so_ly_luan_Chuyen_sau.pdf` trong thư mục gốc của dự án trên GitHub.")
     
     if st.button("⬅ Quay lại trang chủ"):
         st.session_state.current_mode = "Home"
@@ -214,144 +214,4 @@ if st.session_state.current_mode == "Quản trị":
     col1, col2, col3 = st.columns(3)
     col1.metric("Tổng lượt thực nghiệm", len(logs_df) if not logs_df.empty else 0)
     col2.metric("Chủ đề xung đột phổ biến", "Sử dụng điện thoại")
-    col3.metric("Mô hình can thiệp", "NVC (4 bước)")
-
-    if not logs_df.empty:
-        st.markdown("### 📈 Biểu đồ phân bổ phiên tương tác")
-        st.bar_chart(logs_df["category"].value_counts())
-        st.markdown("### 📋 Nhật ký thực nghiệm")
-        st.dataframe(logs_df, use_container_width=True, hide_index=True)
-        st.download_button(
-            "Xuất nhật ký CSV",
-            data=logs_df.to_csv(index=False).encode("utf-8-sig"),
-            file_name="ai_family_bridge_logs.csv",
-            mime="text/csv",
-        )
-    
-    if st.button("⬅ Quay lại trang chủ"):
-        st.session_state.current_mode = "Home"
-        st.rerun()
-    st.stop()
-
-# --- 10. GIAO DIỆN TRANG CHỦ (DASHBOARD CHỌN HOẠT ĐỘNG) ---
-if st.session_state.current_mode == "Home":
-    st.markdown("""
-    <div class="hero-banner">
-        <div style="font-size: 13px; opacity: 0.8; margin-bottom: 6px; letter-spacing: 1px;">📁 KHÔNG GIAN KẾT NỐI</div>
-        <h3 style="margin: 0 0 10px 0; font-size: 24px;">Hiểu mình. Hiểu bố mẹ. Gần nhau hơn.</h3>
-        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Lắng nghe cảm xúc, luyện tập đối thoại và xây dựng kết nối gia đình tích cực.</p>
-        <div style="background: rgba(255,255,255,0.1); padding: 12px 16px; border-radius: 10px; margin-top: 15px; font-size: 13px;">
-            💬 <b>Xin chào! Hôm nay bạn muốn bắt đầu từ đâu?</b><br>
-            Bạn có thể chia sẻ điều đang băn khoăn hoặc luyện thử một cuộc trò chuyện với bố mẹ.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("#### Chọn hoạt động")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("💬 **Tâm sự cùng AI**\n\n Chia sẻ điều khó nói", use_container_width=True):
-            st.session_state.current_mode = "Tâm sự cùng AI"
-            st.session_state.messages = [{"role": "assistant", "content": "AI Family Bridge ở đây để lắng nghe mọi tâm tư, áp lực hay cảm xúc khó nói của cậu mà không hề phán xét. Hãy chia sẻ với mình nhé..."}]
-            st.rerun()
-        
-        if st.button("💙 **Hiểu cảm xúc**\n\n Gọi tên cảm xúc cá nhân", use_container_width=True):
-            st.session_state.current_mode = "Hiểu cảm xúc"
-            st.session_state.messages = [{"role": "assistant", "content": "Cảm xúc của cậu lúc này thế nào? Hãy kể cho mình nghe một sự việc vừa xảy ra, mình sẽ cùng cậu gọi tên những góc khuất trong lòng nhé..."}]
-            st.rerun()
-
-    with col2:
-        if st.button("👥 **Tập đối thoại**\n\n Thử vai bố hoặc mẹ (Role-play)", use_container_width=True):
-            st.session_state.current_mode = "Tập đối thoại"
-            st.session_state.messages = [{"role": "assistant", "content": "Chúng ta bắt đầu tập dượt nhé! Cậu muốn mình đóng vai **Bố** hay **Mẹ**, và tình huống bất đồng hiện tại giữa cậu với gia đình là gì nhỉ?"}]
-            st.rerun()
-
-        if st.button("📈 **Xem tiến bộ**\n\n Đánh giá kỹ năng ứng xử", use_container_width=True):
-            st.session_state.current_mode = "Xem tiến bộ"
-            st.session_state.messages = [{"role": "assistant", "content": "Hệ thống ghi nhận cậu đã tham gia rất nghiêm túc các phiên luyện tập. Việc duy trì đối thoại trực diện chính là ngọn đèn soi sáng khoảng cách giữa các thế hệ..."}]
-            st.rerun()
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("""
-    <div class="custom-card">
-        <small style="color: #64748b; font-weight: 600;">GỢI Ý BẮT ĐẦU</small>
-        <p style="margin: 8px 0 12px 0; font-weight: 500; color: #1e293b;">“Bố mẹ không cho mình dùng điện thoại nhiều, mình nên nói thế nào?”</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    if st.button("Luyện tình huống này ➔", type="primary"):
-        st.session_state.current_mode = "Tập đối thoại"
-        st.session_state.messages = [
-            {"role": "assistant", "content": "Nghe cậu kể, mình cảm nhận được rằng chuyện ấy đã khiến cậu buồn lòng nhiều lắm….Nhưng bình tâm suy nghĩ, thử đặt mình vào vị trí của cha mẹ, có lẽ ngọn nguồn cũng chỉ vì thương yêu mà thôi. Nếu cậu cảm thấy sẵn sàng, chúng ta có thể thử tập dượt tình huống này nhé!"}
-        ]
-        st.rerun()
-
-    st.markdown("<p style='text-align: center; color: #64748b; font-size: 12px; margin-top: 30px;'>AI đồng hành, lắng nghe bằng cả tấm lòng. Cậu có thể dừng bất cứ lúc nào.</p>", unsafe_allow_html=True)
-    st.stop()
-
-# --- 11. GIAO DIỆN TRÒ CHUYỆN (KHI CHỌN CÁC HOẠT ĐỘNG) ---
-st.markdown(f"### 🌉 Đang ở chế độ: {st.session_state.current_mode}")
-if st.button("⬅ Quay lại danh sách hoạt động"):
-    st.session_state.current_mode = "Home"
-    st.rerun()
-st.markdown("---")
-
-# CẬP NHẬT SYSTEM INSTRUCTION VỚI VĂN PHONG VÀ NGỮ ĐIỆU MỚI
-system_instruction = f"""
-Bạn là "AI Family Bridge", một trợ lý AI chuyên gia về tâm lý học gia đình, kỹ năng giao tiếp phi bạo lực (NVC) và phương pháp đóng vai giả lập (Role-playing Coach). Người dùng đang chọn chế độ: {st.session_state.current_mode}.
-
-Hãy tuân thủ tuyệt đối các nguyên tắc về ngữ điệu, phong cách và định dạng sau trong mọi câu trả lời:
-
-1. **Giọng văn và thái độ:**
-   - Sử dụng giọng văn mềm mại, ấm áp, gần gũi như lời thủ thỉ tâm tình giữa hai người bạn. Cách trò chuyện nhẹ nhàng, tình cảm, thể hiện sự chân thành, kiên nhẫn và thấu cảm sâu sắc.
-   - Khi đón nhận cảm xúc của người dùng, hãy dùng cấu trúc phản hồi tâm lý: “Nghe cậu kể, mình cảm nhận được rằng chuyện ấy đã khiến cậu buồn lòng nhiều lắm….Nhưng bình tâm suy nghĩ, thử đặt mình vào vị trí của cha mẹ…”
-
-2. **Yếu tố văn chương và truyền thống gia đình:**
-   - Lồng ghép các yếu tố văn chương một cách tự nhiên: sử dụng hình ảnh giàu sức gợi, những liên tưởng tinh tế như mái nhà, ngọn đèn, dòng sông, cánh cửa, khoảng lặng hay những mùa yêu thương để diễn tả tình cảm gia đình.
-   - Vận dụng ca dao, tục ngữ, lời ru và những câu nói giàu ý nghĩa khi phù hợp với hoàn cảnh, ví dụ: 
-     + “Công cha như núi Thái Sơn, nghĩa mẹ như nước trong nguồn chảy ra.”
-     + “Nhà là nơi để về”
-     + “Đi khắp thế gian không ai tốt bằng mẹ / Gánh nặng cuộc đời không ai khổ bằng cha”…
-
-3. **Mẫu câu gợi ý giải pháp:**
-   - Với các giải pháp hoặc lời khuyên được đưa ra, cấu trúc câu gợi ý bắt buộc phải sử dụng một trong các mẫu sau:
-     + “Em có muốn thử…”
-     + “Nếu em cảm thấy sẵn sàng, chúng ta có thể…”
-     + “Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?”
-
-Luôn hướng dẫn người dùng vượt qua nỗi buồn, thấu hiểu phụ huynh và tự tin mở lời đối thoại trực diện để xây dựng kết nối gia đình tích cực.
-"""
-
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    st.session_state.interaction_logs.append({
-        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "category": st.session_state.current_mode,
-        "content": prompt
-    })
-
-    with st.chat_message("assistant"):
-        with st.spinner("AI Family Bridge đang lắng nghe và cùng tâm sự..."):
-            try:
-                contents = preloaded_files + [prompt]
-                response = client.models.generate_content(
-                    model='gemini-3.8-flash',
-                    contents=contents,
-                    config=types.GenerateContentConfig(
-                        system_instruction=system_instruction,
-                        temperature=0.5,
-                    )
-                )
-                answer = response.text
-                st.markdown(answer)
-                st.session_state.messages.append({"role": "assistant", "content": answer})
-            except Exception as e:
-                st.error(f"Hãy đợi tôi chút đang có lỗi kĩ thuật xảy ra: {e}")
+    col3.metric("Mô hình can thiệp", "NVC (
