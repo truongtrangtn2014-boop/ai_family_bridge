@@ -117,7 +117,7 @@ if not API_KEY:
     st.stop()
 
 client = genai.Client(api_key=API_KEY)
-MODEL_NAME = "gemini-3.8-flash"
+MODEL_NAME = "gemini-3.5-flash-lite"
 
 # --- 6. KHỞI TẠO TRẠNG THÁI ỨNG DỤNG ---
 if "interaction_logs" not in st.session_state:
