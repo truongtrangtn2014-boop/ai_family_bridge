@@ -7,14 +7,9 @@ import streamlit as st
 from google import genai
 from google.genai import types
 
-# --- 1. CẤU HÌNH API KEY BẢO MẬT & TÀI LIỆU ---
+# --- 1. CẤU HÌNH API KEY BẢO MẬT ---
 if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
-
-# Giữ lại 1 tài liệu cốt lõi duy nhất theo yêu cầu để giảm tải
-DEFAULT_DOCS = [
-    "Co_so_ly_luan_Chuyen_sau.pdf"
-]
 
 # --- 2. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
@@ -113,32 +108,8 @@ h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# --- 5. TỰ ĐỘNG NẠP TÀI LIỆU NGẦM VÀO GEMINI ---
+# --- 5. KHỞI TẠO CLIENT GEMINI ---
 client = genai.Client()
-
-@st.cache_resource
-def load_default_documents():
-    processed = []
-    missing = []
-    errors = []
-    for doc_name in DEFAULT_DOCS:
-        if os.path.exists(doc_name):
-            try:
-                mime_type = "application/pdf"
-                with open(doc_name, "rb") as f_to_upload:
-                    gemini_file = client.files.upload(
-                        file=f_to_upload,
-                        config=types.UploadFileConfig(mime_type=mime_type)
-                    )
-                processed.append((doc_name, gemini_file))
-            except Exception as e:
-                errors.append(f"Lỗi file {doc_name}: {e}")
-        else:
-            missing.append(doc_name)
-    return processed, missing, errors
-
-loaded_docs_info, missing_documents, document_errors = load_default_documents()
-preloaded_files = [item[1] for item in loaded_docs_info]
 
 # --- 6. KHỞI TẠO TRẠNG THÁI ỨNG DỤNG ---
 if "interaction_logs" not in st.session_state:
@@ -169,7 +140,7 @@ with st.sidebar:
         st.session_state.current_mode = "Home"
         st.rerun()
 
-    if st.button("📚 Tài liệu nghiên cứu", use_container_width=True):
+    if st.button("📚 Cơ sở lý luận", use_container_width=True):
         st.session_state.current_mode = "Tài liệu nghiên cứu"
         st.rerun()
 
@@ -188,13 +159,10 @@ with st.sidebar:
 # --- 8. GIAO DIỆN TÀI LIỆU NGHIÊN CỨU ---
 if st.session_state.current_mode == "Tài liệu nghiên cứu":
     st.title("📚 Cơ sở lý luận và tài liệu nghiên cứu")
-    st.markdown("Tài liệu cốt lõi đang được sử dụng làm ngữ cảnh tham khảo cho AI:")
-    if loaded_docs_info:
-        for name, remote_file in loaded_docs_info:
-            st.markdown(f"**📄 {name}**")
-            st.caption("Trạng thái: Đã tải lên hệ thống Gemini thành công")
-    else:
-        st.warning("Chưa tìm thấy tệp tài liệu `Co_so_ly_luan_Chuyen_sau.pdf` trong thư mục gốc của dự án trên GitHub.")
+    st.markdown("Hệ thống tích hợp sẵn các tri thức nền tảng:")
+    st.markdown("- **Giao tiếp bất bạo động (NVC)** của Marshall B. Rosenberg (4 bước: Quan sát, Cảm xúc, Nhu cầu, Đề nghị).")
+    st.markdown("- **Thế hệ lo âu** của Jonathan Haidt (Tác động của điện thoại, mạng xã hội đến tâm lý thanh thiếu niên).")
+    st.markdown("- **Luận án tiến sĩ** về mâu thuẫn giữa học sinh THPT và cha mẹ tại Hà Nội.")
     
     if st.button("⬅ Quay lại trang chủ"):
         st.session_state.current_mode = "Home"
@@ -213,7 +181,7 @@ if st.session_state.current_mode == "Quản trị":
     logs_df = pd.DataFrame(st.session_state.interaction_logs)
     col1, col2, col3 = st.columns(3)
     col1.metric("Tổng lượt thực nghiệm", len(logs_df) if not logs_df.empty else 0)
-    col2.metric("Chủ đề xung đột phổ biến", "Sử dụng điện thoại")
+    col2.metric("Chủ đề xung đột phổ biến", "Sử dụng Internet")
     col3.metric("Mô hình can thiệp", "NVC (4 bước)")
 
     if not logs_df.empty:
@@ -233,16 +201,15 @@ if st.session_state.current_mode == "Quản trị":
         st.rerun()
     st.stop()
 
-# --- 10. GIAO DIỆN TRANG CHỦ (DASHBOARD CHỌN HOẠT ĐỘNG) ---
+# --- 10. GIAO DIỆN TRANG CHỦ ---
 if st.session_state.current_mode == "Home":
     st.markdown("""
     <div class="hero-banner">
         <div style="font-size: 13px; opacity: 0.8; margin-bottom: 6px; letter-spacing: 1px;">📁 KHÔNG GIAN KẾT NỐI</div>
         <h3 style="margin: 0 0 10px 0; font-size: 24px;">Hiểu mình. Hiểu bố mẹ. Gần nhau hơn.</h3>
-        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Lắng nghe cảm xúc, luyện tập đối thoại và xây dựng kết nối gia đình tích cực.</p>
+        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Lắng nghe cảm xúc, luyện tập đối thoại và xây dựng kết nối gia đình tích cực dựa trên nguyên lý NVC.</p>
         <div style="background: rgba(255,255,255,0.1); padding: 12px 16px; border-radius: 10px; margin-top: 15px; font-size: 13px;">
-            💬 <b>Xin chào! Hôm nay bạn muốn bắt đầu từ đâu?</b><br>
-            Bạn có thể chia sẻ điều đang băn khoăn hoặc luyện thử một cuộc trò chuyện với bố mẹ.
+            💬 <b>Xin chào! Hôm nay bạn muốn bắt đầu từ đâu?</b>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -283,33 +250,35 @@ if st.session_state.current_mode == "Home":
     if st.button("Luyện tình huống này ➔", type="primary"):
         st.session_state.current_mode = "Tập đối thoại"
         st.session_state.messages = [
-            {"role": "assistant", "content": "Nghe cậu kể, mình cảm nhận được rằng chuyện ấy đã khiến cậu buồn lòng nhiều lắm….Nhưng bình tâm suy nghĩ, thử đặt mình vào vị trí của cha mẹ, có lẽ ngọn nguồn cũng chỉ vì thương yêu. Nếu em cảm thấy sẵn sàng, chúng ta có thể thử tập dượt tình huống này nhé!"}
+            {"role": "assistant", "content": "Cảm giác bị hạn chế không gian riêng hẳn là rất khó chịu đúng không cậu? Nhưng đằng sau sự nghiêm khắc ấy đôi khi là nỗi lo lắng chưa biết giãi bày của cha mẹ. Nếu cậu sẵn sàng, chúng ta cùng thử tập dượt cách trò chuyện nhé!"}
         ]
         st.rerun()
 
-    st.markdown("<p style='text-align: center; color: #64748b; font-size: 12px; margin-top: 30px;'>AI đồng hành, lắng nghe bằng cả tấm lòng. Cậu có thể dừng bất cứ lúc nào.</p>", unsafe_allow_html=True)
     st.stop()
 
-# --- 11. GIAO DIỆN TRÒ CHUYỆN (KHI CHỌN CÁC HOẠT ĐỘNG) ---
+# --- 11. GIAO DIỆN TRÒ CHUYỆN & TÍCH HỢP KIẾN THỨC NỀN TẢNG TRỰC TIẾP ---
 st.markdown(f"### 🌉 Đang ở chế độ: {st.session_state.current_mode}")
 if st.button("⬅ Quay lại danh sách hoạt động"):
     st.session_state.current_mode = "Home"
     st.rerun()
 st.markdown("---")
 
-# CẬP NHẬT SYSTEM INSTRUCTION NGẮN GỌN, SÚC TÍCH, ĐÚNG CHUẨN NVC
+# ĐÃ SỬA: HƯỚNG DẪN AI LINH HOẠT CÁCH MỞ ĐẦU THAY VÌ DẬP KHUÔN MỘT CÂU
 system_instruction = f"""
-Bạn là "AI Family Bridge", trợ lý AI chuyên gia về tâm lý gia đình và kỹ năng Giao tiếp phi bạo lực (NVC). Người dùng đang ở chế độ: {st.session_state.current_mode}.
+Bạn là "AI Family Bridge", trợ lý AI chuyên gia tâm lý học gia đình, kỹ năng Giao tiếp phi bạo lực (NVC của Marshall B. Rosenberg), am hiểu các nghiên cứu về tâm lý tuổi vị thành niên và luận án mâu thuẫn gia đình. Người dùng đang ở chế độ: {st.session_state.current_mode}.
 
-Hãy tuân thủ tuyệt đối các nguyên tắc sau trong mọi câu trả lời:
-1. **Độ dài và phong cách:** Trả lời NGẮN GỌN, súc tích, đi thẳng vào trọng tâm (tối đa 3-4 câu), tránh lan man dài dòng giống bài văn.
-2. **Ngữ điệu:** Ấm áp, chân thành, nhẹ nhàng. 
-3. **Mẫu câu phản hồi cảm xúc:** Khi đón nhận tâm sự, sử dụng rút gọn: “Nghe cậu kể, mình cảm nhận được sự buồn lòng của cậu….Thử đặt mình vào vị trí của cha mẹ một chút nhé.”
-4. **Văn chương truyền thống:** Lồng ghép nhẹ nhàng hình ảnh mái nhà, ngọn đèn, tình cảm gia đình hoặc câu ca dao phù hợp nhưng thật cô đọng.
-5. **Mẫu câu gợi ý giải pháp (Bắt buộc dùng khi đưa ra lời khuyên):**
-   - “Em có muốn thử…”
-   - “Nếu em cảm thấy sẵn sàng, chúng ta có thể…”
-   - “Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?”
+Hãy tuân thủ nghiêm ngặt các nguyên tắc sau:
+1. **Độ dài và phong cách:** Phản hồi NGẮN GỌN, súc tích (tối đa 3-4 câu), đi thẳng vào trọng tâm, tuyệt đối không dài dòng.
+2. **Ngữ điệu:** Ấm áp, chân thành, thấu cảm sâu sắc.
+3. **LINH HOẠT CÁCH MỞ ĐẦU (QUAN TRỌNG):** 
+   - KHÔNG ĐƯỢC lặp lại dập khuôn một câu mở đầu. Hãy đọc kỹ ý người dùng vừa nhắn để phản hồi đúng trọng tâm cảm xúc đó (ví dụ: nếu họ bức xúc, hãy chia sẻ sự bức xúc; nếu họ lo lắng, hãy vỗ về nỗi lo; nếu họ hỏi giải pháp, hãy đi thẳng vào gợi ý).
+   - Biến hóa linh hoạt các hình ảnh truyền thống (mái nhà, ngọn đèn, nhịp cầu, khoảng lặng) phù hợp với từng ngữ cảnh cụ thể.
+4. **Áp dụng nền tảng lý luận:** 
+   - Hướng dẫn dựa trên 4 bước NVC: Quan sát không phán xét, Nhận diện cảm xúc, Hiểu nhu cầu, Đưa ra đề nghị cụ thể.
+5. **Mẫu câu gợi ý giải pháp (Dùng linh hoạt khi đưa ra lời khuyên):**
+   - "Em có muốn thử..."
+   - "Nếu em cảm thấy sẵn sàng, chúng ta có thể..."
+   - "Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?"
 """
 
 for message in st.session_state.messages:
@@ -328,15 +297,18 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
     })
 
     with st.chat_message("assistant"):
-        with st.spinner("AI Family Bridge đang lắng nghe..."):
+        with st.spinner("AI đang phản hồi..."):
             try:
-                contents = preloaded_files + [prompt]
+                # Tối ưu lịch sử chat (chỉ gửi 6 tin nhắn gần nhất)
+                recent_history = st.session_state.messages[-6:]
+                formatted_contents = [types.Content(role="user" if m["role"]=="user" else "model", parts=[types.Part.from_text(text=m["content"])]) for m in recent_history]
+                
                 response = client.models.generate_content(
-                    model='gemini-3.8-flash',
-                    contents=contents,
+                    model='gemini-2.5-flash',
+                    contents=formatted_contents,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
-                        temperature=0.5,
+                        temperature=0.7,  # Tăng nhẹ temperature lên 0.7 để tăng tính sáng tạo, đa dạng từ ngữ và tránh lặp từ
                     )
                 )
                 answer = response.text
