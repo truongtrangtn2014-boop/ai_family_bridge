@@ -307,7 +307,7 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
                 formatted_contents = [types.Content(role="user" if m["role"]=="user" else "model", parts=[types.Part.from_text(text=m["content"])]) for m in recent_history]
                 
                 response = client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model='gemini-3.8-flash',
                     contents=formatted_contents,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
