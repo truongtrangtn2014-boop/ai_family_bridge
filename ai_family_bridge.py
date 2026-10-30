@@ -300,7 +300,7 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
     })
 
     with st.chat_message("assistant"):
-        with st.spinner("AI đang phản hồi..."):
+        with st.spinner("AI Family Bridge đang lắng nghe và phản hồi..."):
             try:
                 # Tối ưu hóa bằng cách chỉ gửi 6 tin nhắn lịch sử gần nhất kết hợp system instruction
                 recent_history = st.session_state.messages[-6:]
