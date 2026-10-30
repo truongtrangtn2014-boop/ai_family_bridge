@@ -250,7 +250,7 @@ if st.session_state.current_mode == "Home":
     if st.button("Luyện tình huống này ➔", type="primary"):
         st.session_state.current_mode = "Tập đối thoại"
         st.session_state.messages = [
-            {"role": "assistant", "content": "Cảm giác bị hạn chế không gian riêng hẳn là rất khó chịu đúng không cậu? Nhưng đằng sau sự nghiêm khắc ấy đôi khi là nỗi lo lắng chưa biết giãi bày của cha mẹ. Nếu cậu sẵn sàng, chúng ta cùng thử tập dượt cách trò chuyện nhé!"}
+            {"role": "assistant", "content": "Nghe cậu kể, mình cảm nhận được sự buồn lòng của cậu khi chưa có sự thấu hiểu từ gia đình. Thử đặt mình vào vị trí của cha mẹ một chút nhé. Nếu em cảm thấy sẵn sàng, chúng ta có thể thử tập dượt tình huống này!"}
         ]
         st.rerun()
 
@@ -263,19 +263,18 @@ if st.button("⬅ Quay lại danh sách hoạt động"):
     st.rerun()
 st.markdown("---")
 
-# HƯỚNG DẪN AI LINH HOẠT CÁCH MỞ ĐẦU THAY VÌ DẬP KHUÔN MỘT CÂU
+# HỆ THỐNG KẾT HỢP TOÀN BỘ KIẾN THỨC TỪ TÀI LIỆU VÀO SYSTEM INSTRUCTION (TỐC ĐỘ PHẢN HỒI CỰC NHANH)
 system_instruction = f"""
-Bạn là "AI Family Bridge", trợ lý AI chuyên gia tâm lý học gia đình, kỹ năng Giao tiếp phi bạo lực (NVC của Marshall B. Rosenberg), am hiểu các nghiên cứu về tâm lý tuổi vị thành niên và luận án mâu thuẫn gia đình. Người dùng đang ở chế độ: {st.session_state.current_mode}.
+Bạn là "AI Family Bridge", trợ lý AI chuyên gia tâm lý học gia đình, kỹ năng Giao tiếp phi bạo lực (NVC của Marshall B. Rosenberg), am hiểu các nghiên cứu về tâm lý tuổi vị thành niên ("Thế hệ lo âu" của Jonathan Haidt) và luận án về mâu thuẫn gia đình. Người dùng đang ở chế độ: {st.session_state.current_mode}.
 
 Hãy tuân thủ nghiêm ngặt các nguyên tắc sau:
-1. **Độ dài và phong cách:** Phản hồi NGẮN GỌN, súc tích (tối đa 3-4 câu), đi thẳng vào trọng tâm, tuyệt đối không dài dòng.
+1. **Độ dài và phong cách:** Phản hồi NGẮN GỌN, súc tích (tối đa 3-4 câu), đi thẳng vào trọng tâm, tuyệt đối không dài dòng giống bài văn.
 2. **Ngữ điệu:** Ấm áp, chân thành, thấu cảm sâu sắc.
-3. **LINH HOẠT CÁCH MỞ ĐẦU (QUAN TRỌNG):** 
-   - KHÔNG ĐƯỢC lặp lại dập khuôn một câu mở đầu. Hãy đọc kỹ ý người dùng vừa nhắn để phản hồi đúng trọng tâm cảm xúc đó (ví dụ: nếu họ bức xúc, hãy chia sẻ sự bức xúc; nếu họ lo lắng, hãy vỗ về nỗi lo; nếu họ hỏi giải pháp, hãy đi thẳng vào gợi ý).
-   - Biến hóa linh hoạt các hình ảnh truyền thống (mái nhà, ngọn đèn, nhịp cầu, khoảng lặng) phù hợp với từng ngữ cảnh cụ thể.
-4. **Áp dụng nền tảng lý luận:** 
-   - Hướng dẫn dựa trên 4 bước NVC: Quan sát không phán xét, Nhận diện cảm xúc, Hiểu nhu cầu, Đưa ra đề nghị cụ thể.
-5. **Mẫu câu gợi ý giải pháp (Dùng linh hoạt khi đưa ra lời khuyên):**
+3. **Áp dụng nền tảng lý luận ngầm:** 
+   - Hướng dẫn dựa trên 4 bước NVC: Quan sát không phán xét, Nhận diện cảm xúc, Hiểu nhu cầu (được tôn trọng, quan tâm, tự chủ), Đưa ra đề nghị cụ thể.
+   - Hiểu rõ các nguyên nhân xung đột phổ biến ở học sinh THPT: Sử dụng Internet/thiết bị, học tập, bạn bè, tài chính.
+4. **Mẫu câu phản hồi cảm xúc:** "Nghe cậu kể, mình cảm nhận được sự buồn lòng của cậu….Thử đặt mình vào vị trí của cha mẹ một chút nhé."
+5. **Mẫu câu gợi ý giải pháp (Bắt buộc dùng khi đưa ra lời khuyên):**
    - "Em có muốn thử..."
    - "Nếu em cảm thấy sẵn sàng, chúng ta có thể..."
    - "Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?"
@@ -299,7 +298,7 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
     with st.chat_message("assistant"):
         with st.spinner("AI đang phản hồi..."):
             try:
-                # Tối ưu lịch sử chat (chỉ gửi 6 tin nhắn gần nhất)
+                # Tối ưu lịch sử chat (chỉ gửi 6 tin nhắn gần nhất để giữ tốc độ siêu nhanh)
                 recent_history = st.session_state.messages[-6:]
                 formatted_contents = [types.Content(role="user" if m["role"]=="user" else "model", parts=[types.Part.from_text(text=m["content"])]) for m in recent_history]
                 
@@ -308,7 +307,7 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
                     contents=formatted_contents,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
-                        temperature=0.7,  # Tăng nhẹ temperature lên 0.7 để tăng tính sáng tạo, đa dạng từ ngữ và tránh lặp từ
+                        temperature=0.5,
                     )
                 )
                 answer = response.text
