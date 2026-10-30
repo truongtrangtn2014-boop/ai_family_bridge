@@ -109,7 +109,15 @@ h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {
 st.markdown(custom_css, unsafe_allow_html=True)
 
 # --- 5. KHỞI TẠO CLIENT GEMINI ---
-client = genai.Client()
+# Đọc API Key từ Streamlit Secrets (không ghi API Key trực tiếp vào mã nguồn).
+API_KEY = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
+
+if not API_KEY:
+    st.error("Chưa tìm thấy GEMINI_API_KEY. Vui lòng cấu hình trong Streamlit Secrets.")
+    st.stop()
+
+client = genai.Client(api_key=API_KEY)
+MODEL_NAME = "gemini-3.8-flash"
 
 # --- 6. KHỞI TẠO TRẠNG THÁI ỨNG DỤNG ---
 if "interaction_logs" not in st.session_state:
@@ -124,10 +132,16 @@ if "current_mode" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Chat Session của Gemini được lưu trong session_state để tồn tại qua các lần rerun.
+if "gemini_chat" not in st.session_state:
+    st.session_state.gemini_chat = None
+
+if "gemini_chat_mode" not in st.session_state:
+    st.session_state.gemini_chat_mode = None
+
 if "admin_logged_in" not in st.session_state:
     st.session_state.admin_logged_in = False
 
-API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 # --- 7. THANH BÊN (SIDEBAR) & CỔNG QUẢN TRỊ ---
 with st.sidebar:
@@ -138,10 +152,14 @@ with st.sidebar:
     
     if st.button("🏠 Về trang chủ", use_container_width=True):
         st.session_state.current_mode = "Home"
+        st.session_state.gemini_chat = None
+        st.session_state.gemini_chat_mode = None
         st.rerun()
 
     if st.button("📚 Cơ sở lý luận", use_container_width=True):
         st.session_state.current_mode = "Tài liệu nghiên cứu"
+        st.session_state.gemini_chat = None
+        st.session_state.gemini_chat_mode = None
         st.rerun()
 
     st.markdown("---")
@@ -154,6 +172,8 @@ with st.sidebar:
         st.success("🔓 Đã đăng nhập quản trị")
         if st.button("📊 Mở Bảng điều khiển", type="primary", use_container_width=True):
             st.session_state.current_mode = "Quản trị"
+            st.session_state.gemini_chat = None
+            st.session_state.gemini_chat_mode = None
             st.rerun()
 
 # --- 8. GIAO DIỆN TÀI LIỆU NGHIÊN CỨU ---
@@ -166,6 +186,8 @@ if st.session_state.current_mode == "Tài liệu nghiên cứu":
     
     if st.button("⬅ Quay lại trang chủ"):
         st.session_state.current_mode = "Home"
+        st.session_state.gemini_chat = None
+        st.session_state.gemini_chat_mode = None
         st.rerun()
     st.stop()
 
@@ -198,6 +220,8 @@ if st.session_state.current_mode == "Quản trị":
     
     if st.button("⬅ Quay lại trang chủ"):
         st.session_state.current_mode = "Home"
+        st.session_state.gemini_chat = None
+        st.session_state.gemini_chat_mode = None
         st.rerun()
     st.stop()
 
@@ -220,22 +244,30 @@ if st.session_state.current_mode == "Home":
     with col1:
         if st.button("💬 **Tâm sự cùng AI**\n\n Chia sẻ điều khó nói", use_container_width=True):
             st.session_state.current_mode = "Tâm sự cùng AI"
+            st.session_state.gemini_chat = None
+            st.session_state.gemini_chat_mode = None
             st.session_state.messages = [{"role": "assistant", "content": "AI Family Bridge luôn ở đây lắng nghe mọi tâm tư của cậu. Hãy chia sẻ với mình nhé..."}]
             st.rerun()
         
         if st.button("💙 **Hiểu cảm xúc**\n\n Gọi tên cảm xúc cá nhân", use_container_width=True):
             st.session_state.current_mode = "Hiểu cảm xúc"
+            st.session_state.gemini_chat = None
+            st.session_state.gemini_chat_mode = None
             st.session_state.messages = [{"role": "assistant", "content": "Cảm xúc của cậu lúc này thế nào? Hãy kể cho mình nghe một sự việc vừa xảy ra nhé..."}]
             st.rerun()
 
     with col2:
         if st.button("👥 **Tập đối thoại**\n\n Thử vai bố hoặc mẹ (Role-play)", use_container_width=True):
             st.session_state.current_mode = "Tập đối thoại"
+            st.session_state.gemini_chat = None
+            st.session_state.gemini_chat_mode = None
             st.session_state.messages = [{"role": "assistant", "content": "Chúng ta bắt đầu nhé! Cậu muốn mình đóng vai **Bố** hay **Mẹ**, và tình huống cần gỡ rối là gì nhỉ?"}]
             st.rerun()
 
         if st.button("📈 **Xem tiến bộ**\n\n Đánh giá kỹ năng ứng xử", use_container_width=True):
             st.session_state.current_mode = "Xem tiến bộ"
+            st.session_state.gemini_chat = None
+            st.session_state.gemini_chat_mode = None
             st.session_state.messages = [{"role": "assistant", "content": "Hệ thống ghi nhận cậu đã tham gia rất nghiêm túc. Việc duy trì đối thoại chính là cây cầu nối ngắn nhất giữa các thế hệ..."}]
             st.rerun()
 
@@ -249,6 +281,8 @@ if st.session_state.current_mode == "Home":
     
     if st.button("Luyện tình huống này ➔", type="primary"):
         st.session_state.current_mode = "Tập đối thoại"
+        st.session_state.gemini_chat = None
+        st.session_state.gemini_chat_mode = None
         st.session_state.messages = [
             {"role": "assistant", "content": "Cảm giác bị hạn chế không gian riêng hẳn là rất khó chịu đúng không cậu? Nhưng đằng sau sự nghiêm khắc ấy đôi khi là nỗi lo lắng chưa biết giãi bày của cha mẹ. Nếu cậu sẵn sàng, chúng ta cùng thử tập dượt cách trò chuyện nhé!"}
         ]
@@ -260,10 +294,12 @@ if st.session_state.current_mode == "Home":
 st.markdown(f"### 🌉 Đang ở chế độ: {st.session_state.current_mode}")
 if st.button("⬅ Quay lại danh sách hoạt động"):
     st.session_state.current_mode = "Home"
+    st.session_state.gemini_chat = None
+    st.session_state.gemini_chat_mode = None
     st.rerun()
 st.markdown("---")
 
-# HỆ THỐNG KẾT HỢP TRỰC TIẾP TRI THỨC VÀO SYSTEM INSTRUCTION (TỐC ĐỘ PHẢN HỒI CỰC NHANH - DƯỚI 2 GIÂY)
+# Giữ nguyên định hướng nội dung và phong cách phản hồi của trợ lý.
 system_instruction = f"""
 Bạn là "AI Family Bridge", trợ lý AI chuyên gia tâm lý học gia đình và kỹ năng Giao tiếp phi bạo lực (NVC). Người dùng đang ở chế độ: {st.session_state.current_mode}.
 
@@ -275,8 +311,8 @@ NỀN TẢNG TRI THỨC TÍCH HỢP NGẦM:
 QUY TẮC PHẢN HỒI:
 1. **Độ dài:** Phản hồi NGẮN GỌN, súc tích (tối đa 3-4 câu), đi thẳng vào trọng tâm, tuyệt đối không dài dòng như bài văn.
 2. **Ngữ điệu:** Ấm áp, chân thành, thấu cảm sâu sắc.
-3. **LINH HOẠT CÁCH MỞ ĐẦU (QUAN TRỌNG):** 
-   - Đọc kỹ thông điệp của người dùng để phản hồi đúng trọng tâm cảm xúc thực tế (áp lực thi cử, mệt mỏi, bức xúc, lo lắng, hoặc mong muốn xin phép). 
+3. **LINH HOẠT CÁCH MỞ ĐẦU (QUAN TRỌNG):**
+   - Đọc kỹ thông điệp của người dùng để phản hồi đúng trọng tâm cảm xúc thực tế (áp lực thi cử, mệt mỏi, bức xúc, lo lắng, hoặc mong muốn xin phép).
    - KHÔNG ĐƯỢC lặp lại dập khuôn câu mở đầu cố định. Mỗi câu trả lời phải có cách diễn đạt cảm xúc riêng phù hợp với ngữ cảnh.
 4. **Mẫu câu gợi ý giải pháp (Dùng linh hoạt khi đưa ra lời khuyên):**
    - "Em có muốn thử..."
@@ -284,12 +320,31 @@ QUY TẮC PHẢN HỒI:
    - "Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?"
 """
 
+# Mỗi chế độ có một Chat Session riêng. Chat Session tự lưu các lượt user/model,
+# vì vậy không cần tự chuyển đổi st.session_state.messages thành Content mỗi lần gọi.
+# Tin nhắn chào ban đầu chỉ hiển thị trên giao diện, không gửi lên Gemini.
+if (
+    st.session_state.gemini_chat is None
+    or st.session_state.gemini_chat_mode != st.session_state.current_mode
+):
+    st.session_state.gemini_chat = client.chats.create(
+        model=MODEL_NAME,
+        config=types.GenerateContentConfig(
+            system_instruction=system_instruction,
+            temperature=0.7,
+        ),
+    )
+    st.session_state.gemini_chat_mode = st.session_state.current_mode
+
+# Hiển thị lịch sử hội thoại trên giao diện Streamlit.
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+# Gửi riêng tin nhắn mới; Gemini Chat Session tự quản lý ngữ cảnh các lượt trước.
 if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
+
     with st.chat_message("user"):
         st.markdown(prompt)
 
@@ -302,20 +357,28 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
     with st.chat_message("assistant"):
         with st.spinner("AI Family Bridge đang lắng nghe và phản hồi..."):
             try:
-                # Tối ưu hóa bằng cách chỉ gửi 6 tin nhắn lịch sử gần nhất kết hợp system instruction
-                recent_history = st.session_state.messages[-6:]
-                formatted_contents = [types.Content(role="user" if m["role"]=="user" else "model", parts=[types.Part.from_text(text=m["content"])]) for m in recent_history]
-                
-                response = client.models.generate_content(
-                    model='gemini-3.8-flash',
-                    contents=formatted_contents,
-                    config=types.GenerateContentConfig(
-                        system_instruction=system_instruction,
-                        temperature=0.7,
-                    )
+                response = st.session_state.gemini_chat.send_message(
+                    message=prompt
                 )
+
                 answer = response.text
+                if not answer:
+                    raise ValueError("Gemini không trả về nội dung văn bản.")
+
                 st.markdown(answer)
-                st.session_state.messages.append({"role": "assistant", "content": answer})
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": answer
+                })
+
             except Exception as e:
-                st.error(f"Đã có lỗi kỹ thuật xảy ra: {e}")
+                # Xóa prompt khỏi lịch sử hiển thị nếu API không trả lời thành công,
+                # để tránh hiển thị một lượt user chưa có phản hồi như thể đã hoàn tất.
+                if (
+                    st.session_state.messages
+                    and st.session_state.messages[-1].get("role") == "user"
+                    and st.session_state.messages[-1].get("content") == prompt
+                ):
+                    st.session_state.messages.pop()
+
+                st.error(f"Đã có lỗi khi kết nối Gemini: {e}")
