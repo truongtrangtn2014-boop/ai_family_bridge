@@ -283,7 +283,7 @@ if st.session_state.current_mode == "Home":
     if st.button("Luyện tình huống này ➔", type="primary"):
         st.session_state.current_mode = "Tập đối thoại"
         st.session_state.messages = [
-            {"role": "assistant", "content": "Nghe cậu kể, mình cảm nhận được rằng chuyện ấy đã khiến cậu buồn lòng nhiều lắm….Nhưng bình tâm suy nghĩ, thử đặt mình vào vị trí của cha mẹ, có lẽ ngọn nguồn cũng chỉ vì thương yêu. Nếu em cảm thấy sẵn sàng, chúng ta có thể thử tập dượt tình huống này nhé!"}
+            {"role": "assistant", "content": "Cảm giác bị hạn chế không gian riêng hẳn là rất khó chịu đúng không cậu? Nhưng đằng sau sự nghiêm khắc ấy đôi khi là nỗi lo lắng chưa biết giãi bày của cha mẹ. Nếu cậu sẵn sàng, chúng ta cùng thử tập dượt cách trò chuyện nhé!"}
         ]
         st.rerun()
 
@@ -297,16 +297,18 @@ if st.button("⬅ Quay lại danh sách hoạt động"):
     st.rerun()
 st.markdown("---")
 
-# CẬP NHẬT SYSTEM INSTRUCTION NGẮN GỌN, SÚC TÍCH, ĐÚNG CHUẨN NVC
+# CẬP NHẬT SYSTEM INSTRUCTION: LINH HOẠT CÁCH MỞ ĐẦU, KHÔNG LẬP LẠI DẬP KHUÔN
 system_instruction = f"""
 Bạn là "AI Family Bridge", trợ lý AI chuyên gia về tâm lý gia đình và kỹ năng Giao tiếp phi bạo lực (NVC). Người dùng đang ở chế độ: {st.session_state.current_mode}.
 
 Hãy tuân thủ tuyệt đối các nguyên tắc sau trong mọi câu trả lời:
 1. **Độ dài và phong cách:** Trả lời NGẮN GỌN, súc tích, đi thẳng vào trọng tâm (tối đa 3-4 câu), tránh lan man dài dòng giống bài văn.
 2. **Ngữ điệu:** Ấm áp, chân thành, nhẹ nhàng. 
-3. **Mẫu câu phản hồi cảm xúc:** Khi đón nhận tâm sự, sử dụng rút gọn: “Nghe cậu kể, mình cảm nhận được sự buồn lòng của cậu….Thử đặt mình vào vị trí của cha mẹ một chút nhé.”
+3. **Phản hồi cảm xúc linh hoạt (QUAN TRỌNG):** 
+   - Đọc kỹ thông điệp của người dùng để phản hồi đúng trọng tâm cảm xúc thực tế (ví dụ: áp lực thi cử, mệt mỏi, bức xúc, lo lắng, hoặc mong muốn xin phép). 
+   - KHÔNG ĐƯỢC lặp lại dập khuôn bất kỳ câu mở đầu cố định nào. Mỗi câu trả lời phải có cách diễn đạt cảm xúc riêng phù hợp với ngữ cảnh.
 4. **Văn chương truyền thống:** Lồng ghép nhẹ nhàng hình ảnh mái nhà, ngọn đèn, tình cảm gia đình hoặc câu ca dao phù hợp nhưng thật cô đọng.
-5. **Mẫu câu gợi ý giải pháp (Bắt buộc dùng khi đưa ra lời khuyên):**
+5. **Mẫu câu gợi ý giải pháp (Dùng linh hoạt khi đưa ra lời khuyên):**
    - “Em có muốn thử…”
    - “Nếu em cảm thấy sẵn sàng, chúng ta có thể…”
    - “Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?”
@@ -336,7 +338,7 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
                     contents=contents,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
-                        temperature=0.5,
+                        temperature=0.7,  # Tăng temperature để AI linh hoạt và đa dạng từ ngữ hơn
                     )
                 )
                 answer = response.text
