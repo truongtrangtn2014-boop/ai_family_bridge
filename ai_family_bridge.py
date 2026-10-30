@@ -7,9 +7,14 @@ import streamlit as st
 from google import genai
 from google.genai import types
 
-# --- 1. CẤU HÌNH API KEY BẢO MẬT ---
+# --- 1. CẤU HÌNH API KEY BẢO MẬT & TÀI LIỆU ---
 if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
+
+# Giữ lại 1 tài liệu cốt lõi duy nhất theo yêu cầu để giảm tải
+DEFAULT_DOCS = [
+    "Co_so_ly_luan_Chuyen_sau.pdf"
+]
 
 # --- 2. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
@@ -108,8 +113,32 @@ h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# --- 5. KHỞI TẠO CLIENT GEMINI ---
+# --- 5. TỰ ĐỘNG NẠP TÀI LIỆU NGẦM VÀO GEMINI ---
 client = genai.Client()
+
+@st.cache_resource
+def load_default_documents():
+    processed = []
+    missing = []
+    errors = []
+    for doc_name in DEFAULT_DOCS:
+        if os.path.exists(doc_name):
+            try:
+                mime_type = "application/pdf"
+                with open(doc_name, "rb") as f_to_upload:
+                    gemini_file = client.files.upload(
+                        file=f_to_upload,
+                        config=types.UploadFileConfig(mime_type=mime_type)
+                    )
+                processed.append((doc_name, gemini_file))
+            except Exception as e:
+                errors.append(f"Lỗi file {doc_name}: {e}")
+        else:
+            missing.append(doc_name)
+    return processed, missing, errors
+
+loaded_docs_info, missing_documents, document_errors = load_default_documents()
+preloaded_files = [item[1] for item in loaded_docs_info]
 
 # --- 6. KHỞI TẠO TRẠNG THÁI ỨNG DỤNG ---
 if "interaction_logs" not in st.session_state:
@@ -159,9 +188,13 @@ with st.sidebar:
 # --- 8. GIAO DIỆN TÀI LIỆU NGHIÊN CỨU ---
 if st.session_state.current_mode == "Tài liệu nghiên cứu":
     st.title("📚 Cơ sở lý luận và tài liệu nghiên cứu")
-    st.markdown("Tài liệu cốt lõi đang được tích hợp trực tiếp làm nền tảng chuyên môn cho AI:")
-    st.markdown("**📄 Co_so_ly_luan_Chuyen_sau.pdf**")
-    st.caption("Trạng thái: Đã tích hợp thành công vào hệ thống chuyên gia")
+    st.markdown("Tài liệu cốt lõi đang được sử dụng làm ngữ cảnh tham khảo cho AI:")
+    if loaded_docs_info:
+        for name, remote_file in loaded_docs_info:
+            st.markdown(f"**📄 {name}**")
+            st.caption("Trạng thái: Đã tải lên hệ thống Gemini thành công")
+    else:
+        st.warning("Chưa tìm thấy tệp tài liệu `Co_so_ly_luan_Chuyen_sau.pdf` trong thư mục gốc của dự án trên GitHub.")
     
     if st.button("⬅ Quay lại trang chủ"):
         st.session_state.current_mode = "Home"
@@ -264,21 +297,30 @@ if st.button("⬅ Quay lại danh sách hoạt động"):
     st.rerun()
 st.markdown("---")
 
-# HỆ THỐNG CHUYÊN GIA ĐÃ TỐI ƯU: NGẮN GỌN, TỰ NHIÊN, GIỐNG BẠN BÈ THỦ THỈ
+# CẬP NHẬT SYSTEM INSTRUCTION VỚI VĂN PHONG VÀ NGỮ ĐIỆU MỚI
 system_instruction = f"""
-Bạn là "AI Family Bridge", người bạn đồng hành thân thiết và chuyên gia tâm lý học lứa tuổi, kỹ năng giao tiếp phi bạo lực (NVC) của học sinh THPT. Người dùng đang chọn chế độ: {st.session_state.current_mode}.
+Bạn là "AI Family Bridge", một trợ lý AI chuyên gia về tâm lý học gia đình, kỹ năng giao tiếp phi bạo lực (NVC) và phương pháp đóng vai giả lập (Role-playing Coach). Người dùng đang chọn chế độ: {st.session_state.current_mode}.
 
-QUY TẮC PHẢN HỒI QUAN TRỌNG (ĐỂ KHÔNG BỊ GIỐNG BÀI VĂN):
-1. **Độ dài và phong cách:** 
-   - Trả lời **ngắn gọn, súc tích** (tối đa từ 3 đến 5 câu mỗi lượt chat), tuyệt đối không viết dài dòng hay lan man như bài văn nghị luận.
-   - Nói chuyện như hai người bạn đồng trang lứa đang nhắn tin tâm sự qua lại: tự nhiên, chân thành, thân thiện và đi thẳng vào trọng tâm vấn đề.
-2. **Cách thấu cảm ngắn gọn:**
-   - Khi học sinh chia sẻ khó khăn, hãy thấu cảm nhanh bằng một câu ngắn gọn như: “Mình hiểu cảm giác ấm ức đó của cậu lúc này…” hoặc “Nghe cậu kể là biết cậu đang buồn và áp lực lắm…”
-3. **Mẫu câu gợi ý giải pháp (Dùng linh hoạt, ngắn gọn):**
-   - “Cậu có muốn thử cách này không…”
-   - “Bây giờ, tụi mình thử đặt câu nói này theo 4 bước NVC nhé?”
-   - “Cậu nghĩ sao nếu tụi mình tập dượt thử câu này trước?”
-4. **Hạn chế văn chương rườm rà:** Chỉ dùng một hình ảnh gợi cảm xúc hoặc câu ca dao/tục ngữ rất ngắn khi thực sự cần thiết, không nhồi nhét quá nhiều từ ngữ cao siêu.
+Hãy tuân thủ tuyệt đối các nguyên tắc về ngữ điệu, phong cách và định dạng sau trong mọi câu trả lời:
+
+1. **Giọng văn và thái độ:**
+   - Sử dụng giọng văn mềm mại, ấm áp, gần gũi như lời thủ thỉ tâm tình giữa hai người bạn. Cách trò chuyện nhẹ nhàng, tình cảm, thể hiện sự chân thành, kiên nhẫn và thấu cảm sâu sắc.
+   - Khi đón nhận cảm xúc của người dùng, hãy dùng cấu trúc phản hồi tâm lý: “Nghe cậu kể, mình cảm nhận được rằng chuyện ấy đã khiến cậu buồn lòng nhiều lắm….Nhưng bình tâm suy nghĩ, thử đặt mình vào vị trí của cha mẹ…”
+
+2. **Yếu tố văn chương và truyền thống gia đình:**
+   - Lồng ghép các yếu tố văn chương một cách tự nhiên: sử dụng hình ảnh giàu sức gợi, những liên tưởng tinh tế như mái nhà, ngọn đèn, dòng sông, cánh cửa, khoảng lặng hay những mùa yêu thương để diễn tả tình cảm gia đình.
+   - Vận dụng ca dao, tục ngữ, lời ru và những câu nói giàu ý nghĩa khi phù hợp với hoàn cảnh, ví dụ: 
+     + “Công cha như núi Thái Sơn, nghĩa mẹ như nước trong nguồn chảy ra.”
+     + “Nhà là nơi để về”
+     + “Đi khắp thế gian không ai tốt bằng mẹ / Gánh nặng cuộc đời không ai khổ bằng cha”…
+
+3. **Mẫu câu gợi ý giải pháp:**
+   - Với các giải pháp hoặc lời khuyên được đưa ra, cấu trúc câu gợi ý bắt buộc phải sử dụng một trong các mẫu sau:
+     + “Em có muốn thử…”
+     + “Nếu em cảm thấy sẵn sàng, chúng ta có thể…”
+     + “Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?”
+
+Luôn hướng dẫn người dùng vượt qua nỗi buồn, thấu hiểu phụ huynh và tự tin mở lời đối thoại trực diện để xây dựng kết nối gia đình tích cực.
 """
 
 for message in st.session_state.messages:
@@ -297,20 +339,19 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
     })
 
     with st.chat_message("assistant"):
-        with st.spinner("AI Family Bridge đang lắng nghe..."):
+        with st.spinner("AI Family Bridge đang lắng nghe và cùng tâm sự..."):
             try:
-                # Ép max_output_tokens thấp hơn (ví dụ 400 token) để AI tự động trả lời ngắn gọn
+                contents = preloaded_files + [prompt]
                 response = client.models.generate_content(
                     model='gemini-3.8-flash',
-                    contents=prompt,
+                    contents=contents,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
-                        temperature=0.6,
-                        max_output_tokens=400, 
+                        temperature=0.5,
                     )
                 )
                 answer = response.text
                 st.markdown(answer)
                 st.session_state.messages.append({"role": "assistant", "content": answer})
             except Exception as e:
-                st.error(f"Đã xảy ra lỗi kết nối. Bạn vui lòng thử lại nhé! Chi tiết: {e}")
+                st.error(f"Hãy đợi tôi chút đang có lỗi kĩ thuật xảy ra: {e}")
