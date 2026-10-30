@@ -253,23 +253,23 @@ if st.session_state.current_mode == "Home":
     with col1:
         if st.button("💬 **Tâm sự cùng AI**\n\n Chia sẻ điều khó nói", use_container_width=True):
             st.session_state.current_mode = "Tâm sự cùng AI"
-            st.session_state.messages = [{"role": "assistant", "content": "AI Family Bridge ở đây để lắng nghe mọi tâm tư, áp lực hay cảm xúc khó nói của cậu mà không hề phán xét. Hãy chia sẻ với mình nhé..."}]
+            st.session_state.messages = [{"role": "assistant", "content": "AI Family Bridge luôn ở đây lắng nghe mọi tâm tư của cậu. Hãy chia sẻ với mình nhé..."}]
             st.rerun()
         
         if st.button("💙 **Hiểu cảm xúc**\n\n Gọi tên cảm xúc cá nhân", use_container_width=True):
             st.session_state.current_mode = "Hiểu cảm xúc"
-            st.session_state.messages = [{"role": "assistant", "content": "Cảm xúc của cậu lúc này thế nào? Hãy kể cho mình nghe một sự việc vừa xảy ra, mình sẽ cùng cậu gọi tên những góc khuất trong lòng nhé..."}]
+            st.session_state.messages = [{"role": "assistant", "content": "Cảm xúc của cậu lúc này thế nào? Hãy kể cho mình nghe một sự việc vừa xảy ra nhé..."}]
             st.rerun()
 
     with col2:
         if st.button("👥 **Tập đối thoại**\n\n Thử vai bố hoặc mẹ (Role-play)", use_container_width=True):
             st.session_state.current_mode = "Tập đối thoại"
-            st.session_state.messages = [{"role": "assistant", "content": "Chúng ta bắt đầu tập dượt nhé! Cậu muốn mình đóng vai **Bố** hay **Mẹ**, và tình huống bất đồng hiện tại giữa cậu với gia đình là gì nhỉ?"}]
+            st.session_state.messages = [{"role": "assistant", "content": "Chúng ta bắt đầu nhé! Cậu muốn mình đóng vai **Bố** hay **Mẹ**, và tình huống cần gỡ rối là gì nhỉ?"}]
             st.rerun()
 
         if st.button("📈 **Xem tiến bộ**\n\n Đánh giá kỹ năng ứng xử", use_container_width=True):
             st.session_state.current_mode = "Xem tiến bộ"
-            st.session_state.messages = [{"role": "assistant", "content": "Hệ thống ghi nhận cậu đã tham gia rất nghiêm túc các phiên luyện tập. Việc duy trì đối thoại trực diện chính là ngọn đèn soi sáng khoảng cách giữa các thế hệ..."}]
+            st.session_state.messages = [{"role": "assistant", "content": "Hệ thống ghi nhận cậu đã tham gia rất nghiêm túc. Việc duy trì đối thoại chính là cây cầu nối ngắn nhất giữa các thế hệ..."}]
             st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -283,7 +283,7 @@ if st.session_state.current_mode == "Home":
     if st.button("Luyện tình huống này ➔", type="primary"):
         st.session_state.current_mode = "Tập đối thoại"
         st.session_state.messages = [
-            {"role": "assistant", "content": "Nghe cậu kể, mình cảm nhận được rằng chuyện ấy đã khiến cậu buồn lòng nhiều lắm….Nhưng bình tâm suy nghĩ, thử đặt mình vào vị trí của cha mẹ, có lẽ ngọn nguồn cũng chỉ vì thương yêu mà thôi. Nếu cậu cảm thấy sẵn sàng, chúng ta có thể thử tập dượt tình huống này nhé!"}
+            {"role": "assistant", "content": "Nghe cậu kể, mình cảm nhận được rằng chuyện ấy đã khiến cậu buồn lòng nhiều lắm….Nhưng bình tâm suy nghĩ, thử đặt mình vào vị trí của cha mẹ, có lẽ ngọn nguồn cũng chỉ vì thương yêu. Nếu em cảm thấy sẵn sàng, chúng ta có thể thử tập dượt tình huống này nhé!"}
         ]
         st.rerun()
 
@@ -297,30 +297,19 @@ if st.button("⬅ Quay lại danh sách hoạt động"):
     st.rerun()
 st.markdown("---")
 
-# CẬP NHẬT SYSTEM INSTRUCTION VỚI VĂN PHONG VÀ NGỮ ĐIỆU MỚI
+# CẬP NHẬT SYSTEM INSTRUCTION NGẮN GỌN, SÚC TÍCH, ĐÚNG CHUẨN NVC
 system_instruction = f"""
-Bạn là "AI Family Bridge", một trợ lý AI chuyên gia về tâm lý học gia đình, kỹ năng giao tiếp phi bạo lực (NVC) và phương pháp đóng vai giả lập (Role-playing Coach). Người dùng đang chọn chế độ: {st.session_state.current_mode}.
+Bạn là "AI Family Bridge", trợ lý AI chuyên gia về tâm lý gia đình và kỹ năng Giao tiếp phi bạo lực (NVC). Người dùng đang ở chế độ: {st.session_state.current_mode}.
 
-Hãy tuân thủ tuyệt đối các nguyên tắc về ngữ điệu, phong cách và định dạng sau trong mọi câu trả lời:
-
-1. **Giọng văn và thái độ:**
-   - Sử dụng giọng văn mềm mại, ấm áp, gần gũi như lời thủ thỉ tâm tình giữa hai người bạn. Cách trò chuyện nhẹ nhàng, tình cảm, thể hiện sự chân thành, kiên nhẫn và thấu cảm sâu sắc.
-   - Khi đón nhận cảm xúc của người dùng, hãy dùng cấu trúc phản hồi tâm lý: “Nghe cậu kể, mình cảm nhận được rằng chuyện ấy đã khiến cậu buồn lòng nhiều lắm….Nhưng bình tâm suy nghĩ, thử đặt mình vào vị trí của cha mẹ…”
-
-2. **Yếu tố văn chương và truyền thống gia đình:**
-   - Lồng ghép các yếu tố văn chương một cách tự nhiên: sử dụng hình ảnh giàu sức gợi, những liên tưởng tinh tế như mái nhà, ngọn đèn, dòng sông, cánh cửa, khoảng lặng hay những mùa yêu thương để diễn tả tình cảm gia đình.
-   - Vận dụng ca dao, tục ngữ, lời ru và những câu nói giàu ý nghĩa khi phù hợp với hoàn cảnh, ví dụ: 
-     + “Công cha như núi Thái Sơn, nghĩa mẹ như nước trong nguồn chảy ra.”
-     + “Nhà là nơi để về”
-     + “Đi khắp thế gian không ai tốt bằng mẹ / Gánh nặng cuộc đời không ai khổ bằng cha”…
-
-3. **Mẫu câu gợi ý giải pháp:**
-   - Với các giải pháp hoặc lời khuyên được đưa ra, cấu trúc câu gợi ý bắt buộc phải sử dụng một trong các mẫu sau:
-     + “Em có muốn thử…”
-     + “Nếu em cảm thấy sẵn sàng, chúng ta có thể…”
-     + “Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?”
-
-Luôn hướng dẫn người dùng vượt qua nỗi buồn, thấu hiểu phụ huynh và tự tin mở lời đối thoại trực diện để xây dựng kết nối gia đình tích cực.
+Hãy tuân thủ tuyệt đối các nguyên tắc sau trong mọi câu trả lời:
+1. **Độ dài và phong cách:** Trả lời NGẮN GỌN, súc tích, đi thẳng vào trọng tâm (tối đa 3-4 câu), tránh lan man dài dòng giống bài văn.
+2. **Ngữ điệu:** Ấm áp, chân thành, nhẹ nhàng. 
+3. **Mẫu câu phản hồi cảm xúc:** Khi đón nhận tâm sự, sử dụng rút gọn: “Nghe cậu kể, mình cảm nhận được sự buồn lòng của cậu….Thử đặt mình vào vị trí của cha mẹ một chút nhé.”
+4. **Văn chương truyền thống:** Lồng ghép nhẹ nhàng hình ảnh mái nhà, ngọn đèn, tình cảm gia đình hoặc câu ca dao phù hợp nhưng thật cô đọng.
+5. **Mẫu câu gợi ý giải pháp (Bắt buộc dùng khi đưa ra lời khuyên):**
+   - “Em có muốn thử…”
+   - “Nếu em cảm thấy sẵn sàng, chúng ta có thể…”
+   - “Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?”
 """
 
 for message in st.session_state.messages:
@@ -339,7 +328,7 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
     })
 
     with st.chat_message("assistant"):
-        with st.spinner("AI Family Bridge đang lắng nghe và cùng tâm sự..."):
+        with st.spinner("AI Family Bridge đang lắng nghe..."):
             try:
                 contents = preloaded_files + [prompt]
                 response = client.models.generate_content(
@@ -354,4 +343,4 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
                 st.markdown(answer)
                 st.session_state.messages.append({"role": "assistant", "content": answer})
             except Exception as e:
-                st.error(f"Hãy đợi tôi chút đang có lỗi kĩ thuật xảy ra: {e}")
+                st.error(f"Đã có lỗi kỹ thuật xảy ra: {e}")
