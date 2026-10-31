@@ -1,5 +1,6 @@
 # --- name=ai_family_bridge.py ---
 import os
+import csv
 import base64
 import datetime
 import pandas as pd
@@ -11,14 +12,43 @@ from google.genai import types
 if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 
-# --- 2. CẤU HÌNH TRANG WEB ---
+# --- 2. HỆ THỐNG LƯU TRỮ NHẬT KÝ DÙNG CHUNG (PERSISTENT LOGGING) ---
+LOG_FILE = "interaction_logs.csv"
+
+def init_logs_file():
+    if not os.path.exists(LOG_FILE):
+        df_init = pd.DataFrame([
+            {"timestamp": "2026-10-18 09:00", "category": "Đóng vai giả lập (Role-play)", "content": "Học sinh thực hành từ chối áp lực chọn ngành nghề."},
+            {"timestamp": "2026-10-18 10:30", "category": "Huấn luyện NVC", "content": "Phân tích 4 bước Giao tiếp phi bạo lực khi mâu thuẫn về thời gian dùng điện thoại."},
+        ])
+        df_init.to_csv(LOG_FILE, index=False, encoding="utf-8-sig")
+
+def append_log(timestamp, category, content):
+    init_logs_file()
+    try:
+        with open(LOG_FILE, mode="a", newline="", encoding="utf-8-sig") as f:
+            writer = csv.writer(f)
+            writer.writerow([timestamp, category, content])
+    except Exception as e:
+        print(f"Lỗi ghi log: {e}")
+
+def load_all_logs():
+    init_logs_file()
+    try:
+        return pd.read_csv(LOG_FILE, encoding="utf-8-sig")
+    except Exception:
+        return pd.DataFrame(columns=["timestamp", "category", "content"])
+
+init_logs_file()
+
+# --- 3. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
     page_title="AI Family Bridge - Cầu nối Gia đình Số",
     page_icon="🌉",
     layout="centered"
 )
 
-# --- 3. HÀM MÃ HÓA ẢNH NỀN BASE64 ---
+# --- 4. HÀM MÃ HÓA ẢNH NỀN BASE64 ---
 def get_base64_of_image(image_path):
     if os.path.exists(image_path):
         with open(image_path, "rb") as f:
@@ -28,7 +58,7 @@ def get_base64_of_image(image_path):
 
 img_base64 = get_base64_of_image("background.png")
 
-# --- 4. CSS TÙY CHỈNH: GIAO DIỆN SÁNG SỦA, MÀU CHỮ TRẮNG RÕ RÀNG ---
+# --- 5. CSS TÙY CHỈNH ---
 custom_css = f"""
 <style>
 .stApp {{
@@ -37,7 +67,6 @@ custom_css = f"""
     background-size: cover;
 }}
 
-/* Thanh bên Sidebar */
 [data-testid="stSidebar"] {{
     background: rgba(10, 25, 50, 0.98);
     backdrop-filter: blur(14px);
@@ -62,7 +91,6 @@ custom_css = f"""
 
 header {{visibility: hidden;}}
 
-/* Card tùy chỉnh phong cách Dashboard */
 .custom-card {{
     background-color: rgba(255, 255, 255, 0.94);
     border-radius: 16px;
@@ -72,7 +100,6 @@ header {{visibility: hidden;}}
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }}
 
-/* Header Banner tối màu sang trọng */
 .hero-banner {{
     background: #0f172a;
     color: #ffffff;
@@ -90,7 +117,6 @@ h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {
     color: #ffffff !important;
 }}
 
-/* Ép toàn bộ chữ trong khung chat thành MÀU TRẮNG SÁNG TUYỆT ĐỐI */
 [data-testid="stChatMessage"], [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] span, [data-testid="stChatMessage"] li, [data-testid="stChatMessage"] strong, [data-testid="stChatMessage"] em {{
     color: #ffffff !important;
 }}
@@ -108,8 +134,7 @@ h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# --- 5. KHỞI TẠO CLIENT GEMINI ---
-# Đọc API Key từ Streamlit Secrets (không ghi API Key trực tiếp vào mã nguồn).
+# --- 6. KHỞI TẠO CLIENT GEMINI ---
 API_KEY = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
 
 if not API_KEY:
@@ -119,13 +144,7 @@ if not API_KEY:
 client = genai.Client(api_key=API_KEY)
 MODEL_NAME = "gemini-3.5-flash-lite"
 
-# --- 6. KHỞI TẠO TRẠNG THÁI ỨNG DỤNG ---
-if "interaction_logs" not in st.session_state:
-    st.session_state.interaction_logs = [
-        {"timestamp": "2026-10-18 09:00", "category": "Đóng vai giả lập (Role-play)", "content": "Học sinh thực hành từ chối áp lực chọn ngành nghề."},
-        {"timestamp": "2026-10-18 10:30", "category": "Huấn luyện NVC", "content": "Phân tích 4 bước Giao tiếp phi bạo lực khi mâu thuẫn về thời gian dùng điện thoại."},
-    ]
-
+# --- 7. KHỞI TẠO TRẠNG THÁI PHIÊN ---
 if "current_mode" not in st.session_state:
     st.session_state.current_mode = "Home"
 
@@ -135,8 +154,7 @@ if "messages" not in st.session_state:
 if "admin_logged_in" not in st.session_state:
     st.session_state.admin_logged_in = False
 
-
-# --- 7. THANH BÊN (SIDEBAR) & CỔNG QUẢN TRỊ ---
+# --- 8. THANH BÊN (SIDEBAR) & CỔNG QUẢN TRỊ ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3429/3429149.png", width=50)
     st.markdown("### 🌉 AI Family Bridge")
@@ -163,20 +181,20 @@ with st.sidebar:
             st.session_state.current_mode = "Quản trị"
             st.rerun()
 
-# --- 8. GIAO DIỆN TÀI LIỆU NGHIÊN CỨU ---
+# --- 9. GIAO DIỆN TÀI LIỆU NGHIÊN CỨU ---
 if st.session_state.current_mode == "Tài liệu nghiên cứu":
     st.title("📚 Cơ sở lý luận và tài liệu nghiên cứu")
     st.markdown("Hệ thống tích hợp sẵn các tri thức nền tảng:")
-    st.markdown("- **Giao tiếp bất bạo động (NVC)** của Marshall B. Rosenberg (4 bước: Quan sát không phán xét, Nhận diện cảm xúc, Nhận diện nhu cầu, Đề nghị cụ thể)[cite: 5, 6].")
-    st.markdown("- **Thế hệ lo âu** của Jonathan Haidt (Tác động của điện thoại, mạng xã hội và không gian số đến tuổi thiếu niên)[cite: 7, 8].")
-    st.markdown("- **Luận án tiến sĩ** về mâu thuẫn giữa học sinh THPT và cha mẹ (vấn đề Internet, học tập, tài chính, bạn bè)[cite: 9, 10, 11].")
+    st.markdown("- **Giao tiếp bất bạo động (NVC)** của Marshall B. Rosenberg (4 bước: Quan sát không phán xét, Nhận diện cảm xúc, Nhận diện nhu cầu, Đề nghị cụ thể).")
+    st.markdown("- **Thế hệ lo âu** của Jonathan Haidt (Tác động của điện thoại, mạng xã hội và không gian số đến tuổi thiếu niên).")
+    st.markdown("- **Luận án tiến sĩ** về mâu thuẫn giữa học sinh THPT và cha mẹ (vấn đề Internet, học tập, tài chính, bạn bè).")
     
     if st.button("⬅ Quay lại trang chủ"):
         st.session_state.current_mode = "Home"
         st.rerun()
     st.stop()
 
-# --- 9. GIAO DIỆN ADMIN DASHBOARD ---
+# --- 10. GIAO DIỆN ADMIN DASHBOARD (TỔNG HỢP TOÀN BỘ DỮ LIỆU) ---
 if st.session_state.current_mode == "Quản trị":
     if not st.session_state.admin_logged_in:
         st.warning("Bạn cần đăng nhập quản trị từ thanh bên.")
@@ -185,7 +203,9 @@ if st.session_state.current_mode == "Quản trị":
     st.markdown("##### Theo dõi dữ liệu tương tác và đánh giá tác động của trợ lý AI đối với học sinh.")
     st.markdown("---")
 
-    logs_df = pd.DataFrame(st.session_state.interaction_logs)
+    # Đọc dữ liệu từ file dùng chung
+    logs_df = load_all_logs()
+
     col1, col2, col3 = st.columns(3)
     col1.metric("Tổng lượt thực nghiệm", len(logs_df) if not logs_df.empty else 0)
     col2.metric("Chủ đề xung đột phổ biến", "Sử dụng Internet & Học tập")
@@ -193,8 +213,10 @@ if st.session_state.current_mode == "Quản trị":
 
     if not logs_df.empty:
         st.markdown("### 📈 Biểu đồ phân bổ phiên tương tác")
-        st.bar_chart(logs_df["category"].value_counts())
-        st.markdown("### 📋 Nhật ký thực nghiệm")
+        if "category" in logs_df.columns:
+            st.bar_chart(logs_df["category"].value_counts())
+        
+        st.markdown("### 📋 Nhật ký thực nghiệm toàn hệ thống")
         st.dataframe(logs_df, use_container_width=True, hide_index=True)
         st.download_button(
             "Xuất nhật ký CSV",
@@ -202,19 +224,21 @@ if st.session_state.current_mode == "Quản trị":
             file_name="ai_family_bridge_logs.csv",
             mime="text/csv",
         )
+    else:
+        st.info("Chưa có lượt tương tác nào được ghi nhận.")
     
     if st.button("⬅ Quay lại trang chủ"):
         st.session_state.current_mode = "Home"
         st.rerun()
     st.stop()
 
-# --- 10. GIAO DIỆN TRANG CHỦ ---
+# --- 11. GIAO DIỆN TRANG CHỦ ---
 if st.session_state.current_mode == "Home":
     st.markdown("""
     <div class="hero-banner">
         <div style="font-size: 13px; opacity: 0.8; margin-bottom: 6px; letter-spacing: 1px;">📁 KHÔNG GIAN KẾT NỐI</div>
         <h3 style="margin: 0 0 10px 0; font-size: 24px;">Hiểu mình. Hiểu bố mẹ. Gần nhau hơn.</h3>
-        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Lắng nghe cảm xúc, luyện tập đối thoại và xây dựng kết nối gia đình tích cực dựa trên nguyên lý NVC[cite: 5, 6].</p>
+        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Lắng nghe cảm xúc, luyện tập đối thoại và xây dựng kết nối gia đình tích cực dựa trên nguyên lý NVC.</p>
         <div style="background: rgba(255,255,255,0.1); padding: 12px 16px; border-radius: 10px; margin-top: 15px; font-size: 13px;">
             💬 <b>Xin chào! Hôm nay bạn muốn bắt đầu từ đâu?</b>
         </div>
@@ -263,64 +287,55 @@ if st.session_state.current_mode == "Home":
 
     st.stop()
 
-# --- 11. GIAO DIỆN TRÒ CHUYỆN & TÍCH HỢP TRI THỨC TRỰC TIẾP ---
+# --- 12. GIAO DIỆN TRÒ CHUYỆN VÀ GHI DỮ LIỆU ---
 st.markdown(f"### 🌉 Đang ở chế độ: {st.session_state.current_mode}")
 if st.button("⬅ Quay lại danh sách hoạt động"):
     st.session_state.current_mode = "Home"
-    st.session_state.gemini_chat = None
-    st.session_state.gemini_chat_mode = None
+    st.session_state.messages = []
     st.rerun()
 st.markdown("---")
 
-# Giữ nguyên định hướng nội dung và phong cách phản hồi của trợ lý.
 system_instruction = f"""
 Bạn là "AI Family Bridge", trợ lý AI chuyên gia tâm lý học gia đình và kỹ năng Giao tiếp phi bạo lực (NVC). Người dùng đang ở chế độ: {st.session_state.current_mode}.
 
 NỀN TẢNG TRI THỨC TÍCH HỢP NGẦM:
-- Phương pháp NVC (Marshall B. Rosenberg): 4 bước gồm Quan sát không phán xét, Nhận diện cảm xúc, Nhận diện nhu cầu (được tôn trọng, thấu hiểu, tự chủ) và Đưa ra đề nghị cụ thể[cite: 5, 6].
-- Nghiên cứu "Thế hệ lo âu" (Jonathan Haidt): Thấu hiểu áp lực từ màn hình điện thoại, mạng xã hội, thiếu ngủ và xu hướng thu rút của tuổi trẻ[cite: 7, 8].
-- Luận án mâu thuẫn gia đình: Nắm bắt các nguyên nhân xung đột phổ biến ở học sinh THPT (sử dụng Internet, học tập, tài chính, quan hệ bạn bè) để đưa ra lời khuyên thấu đáo[cite: 9, 10, 11].
+- Phương pháp NVC (Marshall B. Rosenberg): 4 bước gồm Quan sát không phán xét, Nhận diện cảm xúc, Nhận diện nhu cầu (được tôn trọng, thấu hiểu, tự chủ) và Đưa ra đề nghị cụ thể.
+- Nghiên cứu "Thế hệ lo âu" (Jonathan Haidt): Thấu hiểu áp lực từ màn hình điện thoại, mạng xã hội, thiếu ngủ và xu hướng thu rút của tuổi trẻ.
+- Luận án mâu thuẫn gia đình: Nắm bắt các nguyên nhân xung đột phổ biến ở học sinh THPT (sử dụng Internet, học tập, tài chính, quan hệ bạn bè) để đưa ra lời khuyên thấu đáo.
 
 QUY TẮC PHẢN HỒI:
 1. **Độ dài:** Phản hồi NGẮN GỌN, súc tích (tối đa 3-4 câu), đi thẳng vào trọng tâm, tuyệt đối không dài dòng như bài văn.
 2. **Ngữ điệu:** Ấm áp, chân thành, thấu cảm sâu sắc.
 3. **LINH HOẠT CÁCH MỞ ĐẦU (QUAN TRỌNG):**
-   - Đọc kỹ thông điệp của người dùng để phản hồi đúng trọng tâm cảm xúc thực tế (áp lực thi cử, mệt mỏi, bức xúc, lo lắng, hoặc mong muốn xin phép).
+   - Đọc kỹ thông điệp của người dùng để phản hồi đúng trọng tâm cảm xúc thực tế.
    - KHÔNG ĐƯỢC lặp lại dập khuôn câu mở đầu cố định. Mỗi câu trả lời phải có cách diễn đạt cảm xúc riêng phù hợp với ngữ cảnh.
-4. **Mẫu câu gợi ý giải pháp (Dùng linh hoạt khi đưa ra lời khuyên):**
+4. **Mẫu câu gợi ý giải pháp:**
    - "Em có muốn thử..."
    - "Nếu em cảm thấy sẵn sàng, chúng ta có thể..."
    - "Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?"
 """
 
-# LỊCH SỬ HỘI THOẠI: dùng generate_content theo từng yêu cầu.
-# Không lưu đối tượng Chat Session trong session_state để tránh lỗi vòng đời
-# đối tượng khi Streamlit rerun.
-
-# Hiển thị lịch sử hội thoại trên giao diện Streamlit.
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
 if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
-    # Hiển thị và lưu câu hỏi mới trước khi tạo nội dung gửi API.
+    # Lưu vào session để hiển thị UI
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    st.session_state.interaction_logs.append({
-        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "category": st.session_state.current_mode,
-        "content": prompt
-    })
+    # GHI THẲNG VÀO FILE CHUNG DÀNH CHO ADMIN
+    append_log(
+        timestamp=datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+        category=st.session_state.current_mode,
+        content=prompt
+    )
 
     with st.chat_message("assistant"):
         with st.spinner("AI Family Bridge đang lắng nghe và phản hồi..."):
             try:
-                # Bỏ các tin nhắn assistant mở đầu (lời chào tĩnh của giao diện).
-                # Chỉ bắt đầu lịch sử API từ lượt user đầu tiên để tránh chuỗi
-                # hội thoại mở đầu bằng role=model.
                 api_history = []
                 started = False
 
@@ -346,8 +361,6 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
                             )
                         )
 
-                # Giữ tối đa 12 tin nhắn gần nhất; bảo đảm không cắt bắt đầu
-                # bằng role=model. (12 lượt tin nhắn tương đương khoảng 6 cặp.)
                 api_history = api_history[-12:]
                 while api_history and api_history[0].role != "user":
                     api_history.pop(0)
@@ -375,8 +388,6 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
                 })
 
             except Exception as e:
-                # Nếu gọi API thất bại, bỏ câu hỏi vừa thêm khỏi lịch sử UI.
-                # Người dùng có thể gửi lại mà không làm hỏng thứ tự role.
                 if (
                     st.session_state.messages
                     and st.session_state.messages[-1].get("role") == "user"
