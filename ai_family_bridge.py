@@ -428,5 +428,3 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
                     st.session_state.messages.pop()
 
                 st.error(f"Đã có lỗi khi kết nối Gemini: {type(e).__name__}: {e}")
-```<FollowUp>
-Bạn có muốn tôi hỗ trợ tạo sẵn một danh sách các câu nói gợi ý (Quick Prompts) để đưa vào chế độ "Tập đối thoại" giúp học sinh dễ dàng bắt đầu tình huống thực hành hơn không?
