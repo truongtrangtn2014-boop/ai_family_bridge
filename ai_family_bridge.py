@@ -164,7 +164,7 @@ if not API_KEY:
     st.stop()
 
 client = genai.Client(api_key=API_KEY)
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini-3.5-flash-lite"
 
 # --- 7. KHỞI TẠO TRẠNG THÁI PHIÊN ---
 if "current_mode" not in st.session_state:
