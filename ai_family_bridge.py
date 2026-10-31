@@ -1,4 +1,3 @@
-# --- name=ai_family_bridge.py ---
 import os
 import csv
 import base64
@@ -18,8 +17,8 @@ LOG_FILE = "interaction_logs.csv"
 def init_logs_file():
     if not os.path.exists(LOG_FILE):
         df_init = pd.DataFrame([
-            {"timestamp": "2026-10-18 09:00", "category": "Đóng vai giả lập (Role-play)", "content": "Học sinh thực hành từ chối áp lực chọn ngành nghề."},
-            {"timestamp": "2026-10-18 10:30", "category": "Huấn luyện NVC", "content": "Phân tích 4 bước Giao tiếp phi bạo lực khi mâu thuẫn về thời gian dùng điện thoại."},
+            {"timestamp": "2026-10-18 09:00", "category": "Tập đối thoại", "content": "Học sinh thực hành từ chối áp lực chọn ngành nghề đại học."},
+            {"timestamp": "2026-10-18 10:30", "category": "Tâm sự cùng AI", "content": "Bố mẹ mắng vì dùng điện thoại và chơi game quá nhiều."},
         ])
         df_init.to_csv(LOG_FILE, index=False, encoding="utf-8-sig")
 
@@ -40,6 +39,29 @@ def load_all_logs():
         return pd.DataFrame(columns=["timestamp", "category", "content"])
 
 init_logs_file()
+
+# --- HÀM PHÂN TÍCH XU HƯỚNG CHỦ ĐỀ XUNG ĐỘT TỪ NỘI DUNG ---
+def classify_conflict_topic(text):
+    if not isinstance(text, str):
+        return "Tâm tư khác"
+    t = text.lower()
+    
+    # 1. Thiết bị số & Mạng xã hội
+    if any(k in t for k in ["điện thoại", "máy tính", "chơi game", "facebook", "tiktok", "mạng", "online", "nhắn tin", "lướt"]):
+        return "Thiết bị số & Mạng xã hội"
+    # 2. Học tập & Hướng nghiệp
+    elif any(k in t for k in ["điểm", "học", "thi", "đại học", "ngành", "chọn trường", "áp lực học", "học thêm", "bài tập"]):
+        return "Học tập & Hướng nghiệp"
+    # 3. So sánh & Phán xét
+    elif any(k in t for k in ["so sánh", "con nhà người ta", "chê", "mắng", "quát", "trách", "không tin", "nghi ngờ"]):
+        return "Bị so sánh & Thiếu công nhận"
+    # 4. Riêng tư & Tự do
+    elif any(k in t for k in ["riêng tư", "phòng riêng", "đi chơi", "bạn bè", "người yêu", "yêu đương", "quản lý", "kiểm soát", "giờ giấc"]):
+        return "Không gian riêng & Bạn bè"
+    # 5. Khoảng cách giao tiếp
+    elif any(k in t for k in ["khó nói", "ngại", "không hiểu", "im lặng", "giấu", "không lắng nghe", "khoảng cách"]):
+        return "Khoảng cách thế hệ & Giao tiếp"
+    return "Tâm tư khác"
 
 # --- 3. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
@@ -142,7 +164,7 @@ if not API_KEY:
     st.stop()
 
 client = genai.Client(api_key=API_KEY)
-MODEL_NAME = "gemini-3.5-flash-lite"
+MODEL_NAME = "gemini-2.5-flash"
 
 # --- 7. KHỞI TẠO TRẠNG THÁI PHIÊN ---
 if "current_mode" not in st.session_state:
@@ -194,34 +216,47 @@ if st.session_state.current_mode == "Tài liệu nghiên cứu":
         st.rerun()
     st.stop()
 
-# --- 10. GIAO DIỆN ADMIN DASHBOARD (TỔNG HỢP TOÀN BỘ DỮ LIỆU) ---
+# --- 10. GIAO DIỆN ADMIN DASHBOARD (TỔNG HỢP THEO XU HƯỚNG THỰC TẾ) ---
 if st.session_state.current_mode == "Quản trị":
     if not st.session_state.admin_logged_in:
         st.warning("Bạn cần đăng nhập quản trị từ thanh bên.")
         st.stop()
-    st.title("📊 Hệ thống Quản trị Thực nghiệm - Admin Dashboard")
-    st.markdown("##### Theo dõi dữ liệu tương tác và đánh giá tác động của trợ lý AI đối với học sinh.")
+    st.title("📊 Hệ thống Quản trị Thực nghiệm - Phân tích Xu hướng CLB")
+    st.markdown("##### Phân tích dữ liệu thực tế từ nội dung tâm sự của học sinh.")
     st.markdown("---")
 
-    # Đọc dữ liệu từ file dùng chung
     logs_df = load_all_logs()
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Tổng lượt thực nghiệm", len(logs_df) if not logs_df.empty else 0)
-    col2.metric("Chủ đề xung đột phổ biến", "Sử dụng Internet & Học tập")
-    col3.metric("Mô hình can thiệp", "NVC (4 bước)")
+    if not logs_df.empty and "content" in logs_df.columns:
+        logs_df["conflict_topic"] = logs_df["content"].apply(classify_conflict_topic)
+        
+        topic_counts = logs_df["conflict_topic"].value_counts()
+        top_topic = topic_counts.index[0] if not topic_counts.empty else "Chưa có dữ liệu"
 
-    if not logs_df.empty:
-        st.markdown("### 📈 Biểu đồ phân bổ phiên tương tác")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Tổng lượt trao đổi", len(logs_df))
+        col2.metric("Chủ đề xung đột nổi cộm nhất", top_topic)
+        col3.metric("Mô hình can thiệp", "NVC (4 bước)")
+
+        st.markdown("### 📊 Xu hướng vấn đề tâm lý học sinh băn khoăn nhất")
+        st.caption("Căn cứ dữ liệu thực tế để thiết kế chủ đề trọng tâm cho buổi sinh hoạt CLB:")
+        st.bar_chart(topic_counts)
+
+        st.markdown("### 📈 Phân bổ hành vi sử dụng tính năng")
         if "category" in logs_df.columns:
             st.bar_chart(logs_df["category"].value_counts())
+
+        st.markdown("### 📋 Nhật ký tương tác chi tiết (Nội dung đã phân loại)")
+        st.dataframe(
+            logs_df[["timestamp", "conflict_topic", "category", "content"]].tail(25), 
+            use_container_width=True, 
+            hide_index=True
+        )
         
-        st.markdown("### 📋 Nhật ký thực nghiệm toàn hệ thống")
-        st.dataframe(logs_df, use_container_width=True, hide_index=True)
         st.download_button(
-            "Xuất nhật ký CSV",
+            "Xuất dữ liệu CSV phân tích",
             data=logs_df.to_csv(index=False).encode("utf-8-sig"),
-            file_name="ai_family_bridge_logs.csv",
+            file_name="ai_family_bridge_classified_logs.csv",
             mime="text/csv",
         )
     else:
@@ -296,23 +331,21 @@ if st.button("⬅ Quay lại danh sách hoạt động"):
 st.markdown("---")
 
 system_instruction = f"""
-Bạn là "AI Family Bridge", trợ lý AI chuyên gia tâm lý học gia đình và kỹ năng Giao tiếp phi bạo lực (NVC). Người dùng đang ở chế độ: {st.session_state.current_mode}.
+Bạn là "AI Family Bridge", một người bạn đồng hành tâm lý và người hướng dẫn kỹ năng Giao tiếp trắc ẩn (NVC) dành cho học sinh THPT. Người dùng đang ở chế độ: {st.session_state.current_mode}.
 
-NỀN TẢNG TRI THỨC TÍCH HỢP NGẦM:
-- Phương pháp NVC (Marshall B. Rosenberg): 4 bước gồm Quan sát không phán xét, Nhận diện cảm xúc, Nhận diện nhu cầu (được tôn trọng, thấu hiểu, tự chủ) và Đưa ra đề nghị cụ thể.
-- Nghiên cứu "Thế hệ lo âu" (Jonathan Haidt): Thấu hiểu áp lực từ màn hình điện thoại, mạng xã hội, thiếu ngủ và xu hướng thu rút của tuổi trẻ.
-- Luận án mâu thuẫn gia đình: Nắm bắt các nguyên nhân xung đột phổ biến ở học sinh THPT (sử dụng Internet, học tập, tài chính, quan hệ bạn bè) để đưa ra lời khuyên thấu đáo.
+NỀN TẢNG TRI THỨC NGẦM:
+- Phương pháp NVC (Marshall B. Rosenberg): Quan sát khách quan, Gọi tên cảm xúc, Xác định nhu cầu ngầm và Đề xuất giải pháp đối thoại.
+- Thấu hiểu tâm lý lứa tuổi: Áp lực học tập, thi cử, so sánh điểm số, nhu cầu tự do cá nhân và thói quen kết nối không gian số.
 
-QUY TẮC PHẢN HỒI:
-1. **Độ dài:** Phản hồi NGẮN GỌN, súc tích (tối đa 3-4 câu), đi thẳng vào trọng tâm, tuyệt đối không dài dòng như bài văn.
-2. **Ngữ điệu:** Ấm áp, chân thành, thấu cảm sâu sắc.
-3. **LINH HOẠT CÁCH MỞ ĐẦU (QUAN TRỌNG):**
-   - Đọc kỹ thông điệp của người dùng để phản hồi đúng trọng tâm cảm xúc thực tế.
-   - KHÔNG ĐƯỢC lặp lại dập khuôn câu mở đầu cố định. Mỗi câu trả lời phải có cách diễn đạt cảm xúc riêng phù hợp với ngữ cảnh.
-4. **Mẫu câu gợi ý giải pháp:**
-   - "Em có muốn thử..."
-   - "Nếu em cảm thấy sẵn sàng, chúng ta có thể..."
-   - "Liệu có cách nào để bố mẹ hiểu lòng em hơn không nhỉ?"
+QUY TẮC PHẢN HỒI BẮT BUỘC:
+1. Độ dài: Ngắn gọn, từ 2 đến 4 câu, trọng tâm, tự nhiên, không diễn giải dài dòng như văn mẫu.
+2. Ngữ điệu: Lắng nghe chân thành, ấm áp, không phán xét. Xưng hô: "mình" - "cậu" hoặc "bạn".
+3. TUYỆT ĐỐI CẤM MẪU CÂU RẬP KHUÔN (RẤT QUAN TRỌNG):
+   - CẤM sử dụng các câu mở/kết thúc lặp lại như: "Em có muốn thử...", "Nếu em cảm thấy sẵn sàng...", "Liệu có cách nào để bố mẹ...".
+   - Không chêm câu hỏi mời mọc cố định ở cuối mỗi tin nhắn. Hãy kết thúc câu tự nhiên như một cuộc trò chuyện trực tiếp giữa hai người bạn.
+4. XỬ LÝ THEO NGỮ CẢNH:
+   - Khi học sinh trút giận hoặc buồn: Lắng nghe, xác nhận và phản chiếu lại chính xác cảm xúc đó (tủi thân, áp lực, ngột ngạt), không vội đưa ra bài học đạo đức hay lời khuyên ngay.
+   - Khi học sinh hỏi cách giải quyết: Đi thẳng vào gợi ý một câu nói cụ thể hoặc bóc tách góc nhìn của phụ huynh dựa trên chính chi tiết học sinh vừa kể.
 """
 
 for message in st.session_state.messages:
@@ -320,13 +353,12 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
-    # Lưu vào session để hiển thị UI
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # GHI THẲNG VÀO FILE CHUNG DÀNH CHO ADMIN
+    # GHI DỮ LIỆU TƯƠNG TÁC VÀO TẬP TIN CHUNG
     append_log(
         timestamp=datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
         category=st.session_state.current_mode,
@@ -373,7 +405,7 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
                     contents=api_history,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
-                        temperature=0.7,
+                        temperature=0.6,
                     )
                 )
 
@@ -396,3 +428,5 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
                     st.session_state.messages.pop()
 
                 st.error(f"Đã có lỗi khi kết nối Gemini: {type(e).__name__}: {e}")
+```<FollowUp>
+Bạn có muốn tôi hỗ trợ tạo sẵn một danh sách các câu nói gợi ý (Quick Prompts) để đưa vào chế độ "Tập đối thoại" giúp học sinh dễ dàng bắt đầu tình huống thực hành hơn không?
