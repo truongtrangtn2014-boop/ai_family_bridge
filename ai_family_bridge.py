@@ -40,37 +40,73 @@ def load_all_logs():
 
 init_logs_file()
 
-# --- HÀM PHÂN TÍCH ĐA NHÃN (MULTI-LABEL) CÁC CHỦ ĐỀ XU HƯỚNG TỪ NỘI DUNG ---
+# --- HÀM PHÂN TÍCH ĐA NHÃN (MULTI-LABEL) VÀ LỌC NHIỄU XÃ GIAO ---
 def classify_conflict_topics(text):
     if not isinstance(text, str):
-        return ["Tâm tư khác"]
-    t = text.lower()
+        return ["Xã giao / Tương tác ngắn"]
+    
+    t = text.strip().lower()
+    
+    # Danh sách các câu chào, cảm ơn, từ lót, cảm thán ngắn hoặc gõ nhầm cần tách biệt khỏi xu hướng
+    short_fillers = [
+        "hi", "hello", "helo", "chào", "ai ơi", "haiz", "haizz", "haizzz", 
+        "ok", "oke", "ok r", "okay", "ừ", "uh", "um", "ạ", "nhé", "nhá", 
+        "được", "ko", "không", "có", "giúp", "vâng", "dạ", "thanks", "cảm ơn", 
+        "tks", "bye", "tạm biệt", "ha", "ha ha", "được rồi"
+    ]
+    
+    # Nếu câu quá ngắn (<= 3 ký tự) hoặc nằm trong danh sách từ lót/chào hỏi phổ biến
+    if len(t) <= 3 or t in short_fillers or any(t == sf for sf in short_fillers):
+        return ["Xã giao / Tương tác ngắn"]
+        
     matched_topics = []
     
     # 1. Áp lực học tập
-    if any(k in t for k in ["điểm", "thi", "áp lực", "kiểm tra", "thành tích", "cô giáo", "thầy giáo", "bài tập", "lớp chọn", "sa sút", "mệt mỏi vì học"]):
+    if any(k in t for k in [
+        "điểm", "thi", "áp lực", "kiểm tra", "thành tích", "cô giáo", "thầy giáo", 
+        "bài tập", "lớp chọn", "sa sút", "mệt mỏi", "căng thẳng", "stress", 
+        "học tập", "sợ điểm", "trượt", "học y"
+    ]):
         matched_topics.append("Áp lực học tập")
     
-    # 2. Định hướng nghề nghiệp
-    if any(k in t for k in ["đại học", "ngành", "chọn trường", "nghề nghiệp", "tương lai", "làm gì", "đam mê", "bố mẹ bắt chọn", "trái ý"]):
+    # 2. Định hướng nghề nghiệp (Bổ sung thêm y khoa, bác sĩ, công việc...)
+    if any(k in t for k in [
+        "đại học", "ngành", "chọn trường", "nghề nghiệp", "tương lai", "làm gì", 
+        "đam mê", "bố mẹ bắt chọn", "trái ý", "y", "y khoa", "bác sĩ", "công việc", 
+        "định hướng", "khối a", "khối b"
+    ]):
         matched_topics.append("Định hướng nghề nghiệp")
     
     # 3. Quyền riêng tư cá nhân
-    if any(k in t for k in ["riêng tư", "phòng riêng", "nhật ký", "tự do", "kiểm soát", "xem điện thoại lén", "soi mói", "tôn trọng", "không gian riêng"]):
+    if any(k in t for k in [
+        "riêng tư", "phòng riêng", "nhật ký", "tự do", "kiểm soát", "xem điện thoại lén", 
+        "soi mói", "tôn trọng", "không gian riêng", "tin nhắn", "xem trộm", "ép buộc"
+    ]):
         matched_topics.append("Quyền riêng tư cá nhân")
     
-    # 4. Điện thoại, mạng xã hội
-    if any(k in t for k in ["điện thoại", "máy tính", "chơi game", "facebook", "tiktok", "mạng", "online", "nhắn tin", "lướt", "cắm mặt vào màn hình", "nghiện"]):
+    # 4. Điện thoại, mạng xã hội (Bổ sung game, freefire...)
+    if any(k in t for k in [
+        "điện thoại", "máy tính", "chơi game", "facebook", "tiktok", "mạng", 
+        "online", "nhắn tin", "lướt", "cắm mặt vào màn hình", "nghiện", 
+        "game", "freefire", "pubg", "tải game", "mạng xã hội"
+    ]):
         matched_topics.append("Điện thoại, mạng xã hội")
     
-    # 5. Sinh hoạt và lối sống
-    if any(k in t for k in ["thức khuya", "dậy sớm", "ngủ", "ăn uống", "lười", "phòng bừa", "sức khỏe", "mệt", "thói quen", "sinh hoạt", "thể thao"]):
+    # 5. Sinh hoạt và lối sống (Bổ sung vất vả, kiệt sức...)
+    if any(k in t for k in [
+        "thức khuya", "dậy sớm", "ngủ", "ăn uống", "lười", "phòng bừa", 
+        "sức khỏe", "mệt", "thói quen", "sinh hoạt", "thể thao", "vất vả", "kiệt sức"
+    ]):
         matched_topics.append("Sinh hoạt và lối sống")
         
     # 6. Mối quan hệ tình cảm
-    if any(k in t for k in ["bạn bè", "người yêu", "yêu đương", "tình cảm", "cô đơn", "tẩy chay", "hiểu lầm", "cãi nhau với bạn", "thích một người"]):
+    if any(k in t for k in [
+        "bạn bè", "người yêu", "yêu đương", "tình cảm", "cô đơn", "tẩy chay", 
+        "hiểu lầm", "cãi nhau", "thích một người", "crush", "tỏ tình", "chia tay"
+    ]):
         matched_topics.append("Mối quan hệ tình cảm")
         
+    # Nếu không khớp nhóm nào nhưng có nội dung thực tế, xếp vào Tâm tư khác
     if not matched_topics:
         matched_topics.append("Tâm tư khác")
         
@@ -229,24 +265,27 @@ if st.session_state.current_mode == "Tài liệu nghiên cứu":
         st.rerun()
     st.stop()
 
-# --- 10. GIAO DIỆN ADMIN DASHBOARD (TỔNG HỢP THEO XU HƯỚNG THỰC TẾ) ---
+# --- 10. GIAO DIỆN ADMIN DASHBOARD (LỌC BỎ NHIỄU XÃ GIAO KHỎI XU HƯỚNG) ---
 if st.session_state.current_mode == "Quản trị":
     if not st.session_state.admin_logged_in:
         st.warning("Bạn cần đăng nhập quản trị từ thanh bên.")
         st.stop()
     st.title("📊 Hệ thống Quản trị Thực nghiệm - Phân tích Xu hướng CLB")
-    st.markdown("##### Phân tích dữ liệu thực tế từ nội dung tâm sự của học sinh (Hỗ trợ phân loại đa nhãn).")
+    st.markdown("##### Phân tích dữ liệu thực tế từ nội dung tâm sự của học sinh (Đã lọc bỏ các tương tác xã giao ngắn).")
     st.markdown("---")
 
     logs_df = load_all_logs()
 
     if not logs_df.empty and "content" in logs_df.columns:
-        # Áp dụng hàm phân loại đa nhãn và bùng nổ danh sách thành các hàng riêng biệt để thống kê
         logs_df["conflict_topics_list"] = logs_df["content"].apply(classify_conflict_topics)
         logs_df["conflict_topic_str"] = logs_df["conflict_topics_list"].apply(lambda x: ", ".join(x))
         
         exploded_df = logs_df.explode("conflict_topics_list")
-        topic_counts = exploded_df["conflict_topics_list"].value_counts()
+        
+        # LỌC BỎ "Xã giao / Tương tác ngắn" khỏi biểu đồ thống kê xu hướng
+        trend_exploded_df = exploded_df[exploded_df["conflict_topics_list"] != "Xã giao / Tương tác ngắn"]
+        
+        topic_counts = trend_exploded_df["conflict_topics_list"].value_counts()
         top_topic = topic_counts.index[0] if not topic_counts.empty else "Chưa có dữ liệu"
 
         col1, col2, col3 = st.columns(3)
@@ -255,14 +294,17 @@ if st.session_state.current_mode == "Quản trị":
         col3.metric("Mô hình can thiệp", "NVC (4 bước)")
 
         st.markdown("### 📊 Xu hướng vấn đề tâm lý học sinh băn khoăn nhất")
-        st.caption("Căn cứ dữ liệu thực tế (1 nội dung có thể thuộc nhiều chủ đề) để thiết kế trọng tâm sinh hoạt CLB:")
-        st.bar_chart(topic_counts)
+        st.caption("Biểu đồ thống kê dựa trên các băn khoăn thực tế (đã loại bỏ chào hỏi, cảm ơn, gõ nhầm):")
+        if not topic_counts.empty:
+            st.bar_chart(topic_counts)
+        else:
+            st.info("Chưa có dữ liệu băn khoăn tâm lý nào (hiện tại chỉ ghi nhận các câu chào hỏi/tương tác xã giao).")
 
         st.markdown("### 📈 Phân bổ hành vi sử dụng tính năng")
         if "category" in logs_df.columns:
             st.bar_chart(logs_df["category"].value_counts())
 
-        st.markdown("### 📋 Nhật ký tương tác chi tiết (Nội dung đã phân loại đa nhãn)")
+        st.markdown("### 📋 Nhật ký tương tác chi tiết (Toàn bộ lịch sử)")
         display_df = logs_df[["timestamp", "conflict_topic_str", "category", "content"]].tail(25)
         display_df.columns = ["Thời gian", "Các chủ đề nhận diện", "Chức năng", "Nội dung tâm sự"]
         st.dataframe(
@@ -357,7 +399,7 @@ NỀN TẢNG TRI THỨC NGẦM:
 
 QUY TẮC PHẢN HỒI BẮT BUỘC:
 1. Độ dài: Ngắn gọn, từ 2 đến 4 câu, trọng tâm, tự nhiên, không diễn giải dài dòng như văn mẫu.
-2. Ngữ điệu: Lắng nghe chân thành, ấm áp, không phán xét. Xưng hô: "mình" - "cậu" hoặc "bạn".
+2. Ngữ điệu: Lắng nghe chân thành, ấm áp, không phán xét. Xưng hô: "m님" - "cậu" hoặc "bạn".
 3. TUYỆT ĐỐI CẤM MẪU CÂU RẬP KHUÔN (RẤT QUAN TRỌNG):
    - CẤM sử dụng các câu mở/kết thúc lặp lại như: "Em có muốn thử...", "Nếu em cảm thấy sẵn sàng...", "Liệu có cách nào để bố mẹ...".
    - Không chêm câu hỏi mời mọc cố định ở cuối mỗi tin nhắn. Hãy kết thúc câu tự nhiên như một cuộc trò chuyện trực tiếp giữa hai người bạn.
