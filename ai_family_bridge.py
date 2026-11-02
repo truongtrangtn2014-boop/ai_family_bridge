@@ -147,7 +147,7 @@ def get_base64_of_image(image_path):
 
 img_base64 = get_base64_of_image("background.png")
 
-# --- 5. CSS TÙY CHỈNH (CẬP NHẬT MÀU CHỮ SÁNG/TRẮNG TƯƠNG PHẢN CAO TRÊN NỀN XANH) ---
+# --- 5. CSS TÙY CHỈNH (MÀU CHỮ SÁNG/TRẮNG TƯƠNG PHẢN CAO TRÊN NỀN XANH) ---
 custom_css = f"""
 <style>
 .stApp {{
@@ -198,7 +198,6 @@ header {{visibility: hidden;}}
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }}
 
-/* ĐẢM BẢO TOÀN BỘ TIÊU ĐỀ, CHỮ, NHÃN TRÊN NỀN ỨNG DỤNG SÁNG RÕ (MÀU TRẮNG/VÀNG NHẠT) */
 h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {{
     color: #f8fafc !important;
 }}
@@ -207,7 +206,6 @@ h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {
     color: #ffffff !important;
 }}
 
-/* ĐỊNH DẠNG CHỮ CHO CÁC KHUNG CHỈ SỐ METRIC VÀ CHÚ THÍCH */
 [data-testid="stMetricValue"] {{
     color: #fef08a !important;
     font-weight: 700;
@@ -221,7 +219,6 @@ h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {
     color: #cbd5e1 !important;
 }}
 
-/* KHUNG CHAT MESSAGE */
 [data-testid="stChatMessage"], [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] span, [data-testid="stChatMessage"] li, [data-testid="stChatMessage"] strong, [data-testid="stChatMessage"] em {{
     color: #ffffff !important;
 }}
@@ -453,7 +450,6 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # GHI DỮ LIỆU TƯƠNG TÁC VÀO TẬP TIN CHUNG
     append_log(
         timestamp=datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
         category=st.session_state.current_mode,
@@ -504,4 +500,22 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
                     )
                 )
 
-instance_answer = response.text
+                answer = response.text
+                if not answer or not answer.strip():
+                    raise ValueError("Gemini không trả về nội dung văn bản.")
+
+                st.markdown(answer)
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": answer
+                })
+
+            except Exception as e:
+                if (
+                    st.session_state.messages
+                    and st.session_state.messages[-1].get("role") == "user"
+                    and st.session_state.messages[-1].get("content") == prompt
+                ):
+                    st.session_state.messages.pop()
+
+                st.error(f"Đã có lỗi khi kết nối Gemini: {type(e).__name__}: {e}")
