@@ -147,7 +147,7 @@ def get_base64_of_image(image_path):
 
 img_base64 = get_base64_of_image("background.png")
 
-# --- 5. CSS TÙY CHỈNH (MÀU CHỮ SÁNG/TRẮNG TƯƠNG PHẢN CAO TRÊN NỀN XANH) ---
+# --- 5. CSS TÙY CHỈNH (NỀN TRẮNG CHỮ ĐEN CHO NÚT BẤM, NỀN TỐI CHỮ TRẮNG CHO CÁC PHẦN KHÁC) ---
 custom_css = f"""
 <style>
 .stApp {{
@@ -198,7 +198,28 @@ header {{visibility: hidden;}}
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }}
 
-h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {{
+/* ĐỊNH DẠNG CÁC NÚT BẤM CHÍNH (TRANG CHỦ): NỀN TRẮNG - CHỮ ĐEN ĐẬM ĐỂ NHÌN RÕ NGAY */
+div.stButton > button {{
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    border-radius: 12px;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+div.stButton > button p, div.stButton > button span {{
+    color: #0f172a !important;
+    font-weight: 600 !important;
+}}
+
+div.stButton > button:hover {{
+    background-color: #f8fafc !important;
+    border-color: #38bdf8 !important;
+}}
+
+/* ĐỊNH DẠNG CHỮ CHUNG TRÊN TRANG (NGOẠI TRỪ NÚT BẤM) */
+h1, h2, h3, h4, h5, h6, p:not(div.stButton p), span:not(div.stButton span), label, div[data-testid="stMarkdownContainer"] {{
     color: #f8fafc !important;
 }}
 
@@ -219,6 +240,7 @@ h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {
     color: #cbd5e1 !important;
 }}
 
+/* KHUNG CHAT MESSAGE */
 [data-testid="stChatMessage"], [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] span, [data-testid="stChatMessage"] li, [data-testid="stChatMessage"] strong, [data-testid="stChatMessage"] em {{
     color: #ffffff !important;
 }}
