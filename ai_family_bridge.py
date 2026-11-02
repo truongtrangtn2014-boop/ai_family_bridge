@@ -40,28 +40,41 @@ def load_all_logs():
 
 init_logs_file()
 
-# --- HÀM PHÂN TÍCH XU HƯỚNG CHỦ ĐỀ XUNG ĐỘT TỪ NỘI DUNG ---
-def classify_conflict_topic(text):
+# --- HÀM PHÂN TÍCH ĐA NHÃN (MULTI-LABEL) CÁC CHỦ ĐỀ XU HƯỚNG TỪ NỘI DUNG ---
+def classify_conflict_topics(text):
     if not isinstance(text, str):
-        return "Tâm tư khác"
+        return ["Tâm tư khác"]
     t = text.lower()
+    matched_topics = []
     
-    # 1. Thiết bị số & Mạng xã hội
-    if any(k in t for k in ["điện thoại", "máy tính", "chơi game", "facebook", "tiktok", "mạng", "online", "nhắn tin", "lướt"]):
-        return "Thiết bị số & Mạng xã hội"
-    # 2. Học tập & Hướng nghiệp
-    elif any(k in t for k in ["điểm", "học", "thi", "đại học", "ngành", "chọn trường", "áp lực học", "học thêm", "bài tập"]):
-        return "Học tập & Hướng nghiệp"
-    # 3. So sánh & Phán xét
-    elif any(k in t for k in ["so sánh", "con nhà người ta", "chê", "mắng", "quát", "trách", "không tin", "nghi ngờ"]):
-        return "Bị so sánh & Thiếu công nhận"
-    # 4. Riêng tư & Tự do
-    elif any(k in t for k in ["riêng tư", "phòng riêng", "đi chơi", "bạn bè", "người yêu", "yêu đương", "quản lý", "kiểm soát", "giờ giấc"]):
-        return "Không gian riêng & Bạn bè"
-    # 5. Khoảng cách giao tiếp
-    elif any(k in t for k in ["khó nói", "ngại", "không hiểu", "im lặng", "giấu", "không lắng nghe", "khoảng cách"]):
-        return "Khoảng cách thế hệ & Giao tiếp"
-    return "Tâm tư khác"
+    # 1. Áp lực học tập
+    if any(k in t for k in ["điểm", "thi", "áp lực", "kiểm tra", "thành tích", "cô giáo", "thầy giáo", "bài tập", "lớp chọn", "sa sút", "mệt mỏi vì học"]):
+        matched_topics.append("Áp lực học tập")
+    
+    # 2. Định hướng nghề nghiệp
+    if any(k in t for k in ["đại học", "ngành", "chọn trường", "nghề nghiệp", "tương lai", "làm gì", "đam mê", "bố mẹ bắt chọn", "trái ý"]):
+        matched_topics.append("Định hướng nghề nghiệp")
+    
+    # 3. Quyền riêng tư cá nhân
+    if any(k in t for k in ["riêng tư", "phòng riêng", "nhật ký", "tự do", "kiểm soát", "xem điện thoại lén", "soi mói", "tôn trọng", "không gian riêng"]):
+        matched_topics.append("Quyền riêng tư cá nhân")
+    
+    # 4. Điện thoại, mạng xã hội
+    if any(k in t for k in ["điện thoại", "máy tính", "chơi game", "facebook", "tiktok", "mạng", "online", "nhắn tin", "lướt", "cắm mặt vào màn hình", "nghiện"]):
+        matched_topics.append("Điện thoại, mạng xã hội")
+    
+    # 5. Sinh hoạt và lối sống
+    if any(k in t for k in ["thức khuya", "dậy sớm", "ngủ", "ăn uống", "lười", "phòng bừa", "sức khỏe", "mệt", "thói quen", "sinh hoạt", "thể thao"]):
+        matched_topics.append("Sinh hoạt và lối sống")
+        
+    # 6. Mối quan hệ tình cảm
+    if any(k in t for k in ["bạn bè", "người yêu", "yêu đương", "tình cảm", "cô đơn", "tẩy chay", "hiểu lầm", "cãi nhau với bạn", "thích một người"]):
+        matched_topics.append("Mối quan hệ tình cảm")
+        
+    if not matched_topics:
+        matched_topics.append("Tâm tư khác")
+        
+    return matched_topics
 
 # --- 3. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
@@ -222,33 +235,38 @@ if st.session_state.current_mode == "Quản trị":
         st.warning("Bạn cần đăng nhập quản trị từ thanh bên.")
         st.stop()
     st.title("📊 Hệ thống Quản trị Thực nghiệm - Phân tích Xu hướng CLB")
-    st.markdown("##### Phân tích dữ liệu thực tế từ nội dung tâm sự của học sinh.")
+    st.markdown("##### Phân tích dữ liệu thực tế từ nội dung tâm sự của học sinh (Hỗ trợ phân loại đa nhãn).")
     st.markdown("---")
 
     logs_df = load_all_logs()
 
     if not logs_df.empty and "content" in logs_df.columns:
-        logs_df["conflict_topic"] = logs_df["content"].apply(classify_conflict_topic)
+        # Áp dụng hàm phân loại đa nhãn và bùng nổ danh sách thành các hàng riêng biệt để thống kê
+        logs_df["conflict_topics_list"] = logs_df["content"].apply(classify_conflict_topics)
+        logs_df["conflict_topic_str"] = logs_df["conflict_topics_list"].apply(lambda x: ", ".join(x))
         
-        topic_counts = logs_df["conflict_topic"].value_counts()
+        exploded_df = logs_df.explode("conflict_topics_list")
+        topic_counts = exploded_df["conflict_topics_list"].value_counts()
         top_topic = topic_counts.index[0] if not topic_counts.empty else "Chưa có dữ liệu"
 
         col1, col2, col3 = st.columns(3)
         col1.metric("Tổng lượt trao đổi", len(logs_df))
-        col2.metric("Chủ đề xung đột nổi cộm nhất", top_topic)
+        col2.metric("Chủ đề nổi cộm nhất", top_topic)
         col3.metric("Mô hình can thiệp", "NVC (4 bước)")
 
         st.markdown("### 📊 Xu hướng vấn đề tâm lý học sinh băn khoăn nhất")
-        st.caption("Căn cứ dữ liệu thực tế để thiết kế chủ đề trọng tâm cho buổi sinh hoạt CLB:")
+        st.caption("Căn cứ dữ liệu thực tế (1 nội dung có thể thuộc nhiều chủ đề) để thiết kế trọng tâm sinh hoạt CLB:")
         st.bar_chart(topic_counts)
 
         st.markdown("### 📈 Phân bổ hành vi sử dụng tính năng")
         if "category" in logs_df.columns:
             st.bar_chart(logs_df["category"].value_counts())
 
-        st.markdown("### 📋 Nhật ký tương tác chi tiết (Nội dung đã phân loại)")
+        st.markdown("### 📋 Nhật ký tương tác chi tiết (Nội dung đã phân loại đa nhãn)")
+        display_df = logs_df[["timestamp", "conflict_topic_str", "category", "content"]].tail(25)
+        display_df.columns = ["Thời gian", "Các chủ đề nhận diện", "Chức năng", "Nội dung tâm sự"]
         st.dataframe(
-            logs_df[["timestamp", "conflict_topic", "category", "content"]].tail(25), 
+            display_df, 
             use_container_width=True, 
             hide_index=True
         )
@@ -335,7 +353,7 @@ Bạn là "AI Family Bridge", một người bạn đồng hành tâm lý và ng
 
 NỀN TẢNG TRI THỨC NGẦM:
 - Phương pháp NVC (Marshall B. Rosenberg): Quan sát khách quan, Gọi tên cảm xúc, Xác định nhu cầu ngầm và Đề xuất giải pháp đối thoại.
-- Thấu hiểu tâm lý lứa tuổi: Áp lực học tập, thi cử, so sánh điểm số, nhu cầu tự do cá nhân và thói quen kết nối không gian số.
+- Thấu hiểu tâm lý lứa tuổi: Áp lực học tập, định hướng nghề nghiệp, quyền riêng tư, thiết bị số, sinh hoạt lối sống và các mối quan hệ tình cảm.
 
 QUY TẮC PHẢN HỒI BẮT BUỘC:
 1. Độ dài: Ngắn gọn, từ 2 đến 4 câu, trọng tâm, tự nhiên, không diễn giải dài dòng như văn mẫu.
