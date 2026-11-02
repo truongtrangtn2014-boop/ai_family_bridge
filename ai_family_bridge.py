@@ -47,7 +47,6 @@ def classify_conflict_topics(text):
     
     t = text.strip().lower()
     
-    # Danh sách các câu chào, cảm ơn, từ lót, cảm thán ngắn hoặc gõ nhầm cần tách biệt khỏi xu hướng
     short_fillers = [
         "hi", "hello", "helo", "chào", "ai ơi", "haiz", "haizz", "haizzz", 
         "ok", "oke", "ok r", "okay", "ừ", "uh", "um", "ạ", "nhé", "nhá", 
@@ -60,7 +59,7 @@ def classify_conflict_topics(text):
         
     matched_topics = []
     
-    # 1. Áp lực học tập (Mở rộng từ khóa)
+    # 1. Áp lực học tập
     if any(k in t for k in [
         "điểm", "điểm số", "thi", "kiểm tra", "thi cử", "áp lực", "stress", "căng thẳng", 
         "thành tích", "cô giáo", "thầy giáo", "giáo viên", "bài tập", "lớp chọn", "sa sút", 
@@ -69,7 +68,7 @@ def classify_conflict_topics(text):
     ]):
         matched_topics.append("Áp lực học tập")
     
-    # 2. Định hướng nghề nghiệp (Mở rộng từ khóa)
+    # 2. Định hướng nghề nghiệp
     if any(k in t for k in [
         "đại học", "ngành", "chọn trường", "nghề nghiệp", "tương lai", "làm gì", "đam mê", 
         "bố mẹ bắt chọn", "trái ý", "y", "y khoa", "bác sĩ", "công việc", "định hướng", 
@@ -78,7 +77,7 @@ def classify_conflict_topics(text):
     ]):
         matched_topics.append("Định hướng nghề nghiệp")
     
-    # 3. Quyền riêng tư cá nhân (Mở rộng từ khóa)
+    # 3. Quyền riêng tư cá nhân
     if any(k in t for k in [
         "riêng tư", "phòng riêng", "nhật ký", "tự do", "kiểm soát", "xem điện thoại lén", 
         "soi mói", "tôn trọng", "không gian riêng", "tin nhắn", "xem trộm", "ép buộc", 
@@ -86,7 +85,7 @@ def classify_conflict_topics(text):
     ]):
         matched_topics.append("Quyền riêng tư cá nhân")
     
-    # 4. Điện thoại, mạng xã hội (Mở rộng từ khóa)
+    # 4. Điện thoại, mạng xã hội
     if any(k in t for k in [
         "điện thoại", "máy tính", "chơi game", "facebook", "tiktok", "mạng", "online", 
         "nhắn tin", "lướt", "cắm mặt vào màn hình", "nghiện", "game", "freefire", "pubg", 
@@ -94,7 +93,7 @@ def classify_conflict_topics(text):
     ]):
         matched_topics.append("Điện thoại, mạng xã hội")
     
-    # 5. Sinh hoạt và lối sống (Mở rộng từ khóa)
+    # 5. Sinh hoạt và lối sống
     if any(k in t for k in [
         "thức khuya", "dậy sớm", "ngủ", "ăn uống", "lười", "phòng bừa", "sức khỏe", 
         "mệt", "thói quen", "sinh hoạt", "thể thao", "vất vả", "kiệt sức", "ốm", "ăn ít", 
@@ -102,7 +101,7 @@ def classify_conflict_topics(text):
     ]):
         matched_topics.append("Sinh hoạt và lối sống")
         
-    # 6. Mối quan hệ tình cảm (Mở rộng từ khóa)
+    # 6. Mối quan hệ tình cảm
     if any(k in t for k in [
         "bạn bè", "người yêu", "yêu đương", "tình cảm", "cô đơn", "tẩy chay", "hiểu lầm", 
         "cãi nhau", "thích một người", "crush", "tỏ tình", "chia tay", "bạn thân", "cô lập", 
@@ -110,7 +109,7 @@ def classify_conflict_topics(text):
     ]):
         matched_topics.append("Mối quan hệ tình cảm")
 
-    # 7. Kết nối gia đình & Sự quan tâm (Mở rộng từ khóa)
+    # 7. Kết nối gia đình & Sự quan tâm
     if any(k in t for k in [
         "không quan tâm", "bỏ mặc", "không để ý", "xa cách", "lạnh nhạt", "không thèm", 
         "bận rộn", "không hiểu con", "tủi thân", "cô đơn ở nhà", "bỏ bê", "xa lánh", 
@@ -118,7 +117,7 @@ def classify_conflict_topics(text):
     ]):
         matched_topics.append("Kết nối gia đình & Sự quan tâm")
 
-    # 8. Bị so sánh & Thiếu công nhận (Mở rộng từ khóa)
+    # 8. Bị so sánh & Thiếu công nhận
     if any(k in t for k in [
         "so sánh", "con nhà người ta", "chê", "mắng", "quát", "trách", "không bằng người ta", 
         "so với bạn", "kém cỏi", "không công nhận", "chê bai", "vô dụng", "không bằng ai", 
@@ -126,7 +125,6 @@ def classify_conflict_topics(text):
     ]):
         matched_topics.append("Bị so sánh & Thiếu công nhận")
         
-    # Nếu không khớp nhóm nào nhưng có nội dung thực tế, xếp vào Tâm tư khác
     if not matched_topics:
         matched_topics.append("Tâm tư khác")
         
@@ -149,11 +147,11 @@ def get_base64_of_image(image_path):
 
 img_base64 = get_base64_of_image("background.png")
 
-# --- 5. CSS TÙY CHỈNH ---
+# --- 5. CSS TÙY CHỈNH (CẬP NHẬT MÀU CHỮ SÁNG/TRẮNG TƯƠNG PHẢN CAO TRÊN NỀN XANH) ---
 custom_css = f"""
 <style>
 .stApp {{
-    background: linear-gradient(rgba(5, 15, 35, 0.2), rgba(5, 15, 35, 0.2)), 
+    background: linear-gradient(rgba(5, 15, 35, 0.3), rgba(5, 15, 35, 0.3)), 
                 url("data:image/png;base64,{img_base64}") no-repeat top center fixed;
     background-size: cover;
 }}
@@ -183,12 +181,12 @@ custom_css = f"""
 header {{visibility: hidden;}}
 
 .custom-card {{
-    background-color: rgba(255, 255, 255, 0.94);
+    background-color: rgba(15, 23, 42, 0.85);
     border-radius: 16px;
     padding: 20px;
     margin-bottom: 15px;
-    border: 1px solid rgba(226, 232, 240, 0.9);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }}
 
 .hero-banner {{
@@ -200,14 +198,30 @@ header {{visibility: hidden;}}
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }}
 
+/* ĐẢM BẢO TOÀN BỘ TIÊU ĐỀ, CHỮ, NHÃN TRÊN NỀN ỨNG DỤNG SÁNG RÕ (MÀU TRẮNG/VÀNG NHẠT) */
 h1, h2, h3, h4, h5, h6, p, span, label, div[data-testid="stMarkdownContainer"] {{
-    color: #1e293b;
+    color: #f8fafc !important;
 }}
 
 .hero-banner *, .hero-banner h3, .hero-banner p {{
     color: #ffffff !important;
 }}
 
+/* ĐỊNH DẠNG CHỮ CHO CÁC KHUNG CHỈ SỐ METRIC VÀ CHÚ THÍCH */
+[data-testid="stMetricValue"] {{
+    color: #fef08a !important;
+    font-weight: 700;
+}}
+
+[data-testid="stMetricLabel"] {{
+    color: #cbd5e1 !important;
+}}
+
+.stCaptionContainer p, [data-testid="stCaptionContainer"] {{
+    color: #cbd5e1 !important;
+}}
+
+/* KHUNG CHAT MESSAGE */
 [data-testid="stChatMessage"], [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] span, [data-testid="stChatMessage"] li, [data-testid="stChatMessage"] strong, [data-testid="stChatMessage"] em {{
     color: #ffffff !important;
 }}
@@ -285,7 +299,7 @@ if st.session_state.current_mode == "Tài liệu nghiên cứu":
         st.rerun()
     st.stop()
 
-# --- 10. GIAO DIỆN ADMIN DASHBOARD (LOẠI BỎ HOÀN TOÀN XÃ GIAO VÀ TÂM TƯ KHÁC KHỎI BIỂU ĐỒ) ---
+# --- 10. GIAO DIỆN ADMIN DASHBOARD ---
 if st.session_state.current_mode == "Quản trị":
     if not st.session_state.admin_logged_in:
         st.warning("Bạn cần đăng nhập quản trị từ thanh bên.")
@@ -302,7 +316,6 @@ if st.session_state.current_mode == "Quản trị":
         
         exploded_df = logs_df.explode("conflict_topics_list")
         
-        # LOẠI BỎ "Xã giao / Tương tác ngắn" và "Tâm tư khác" ra khỏi biểu đồ thống kê xu hướng
         filtered_trend_df = exploded_df[
             (~exploded_df["conflict_topics_list"].isin(["Xã giao / Tương tác ngắn", "Tâm tư khác"]))
         ]
@@ -390,8 +403,8 @@ if st.session_state.current_mode == "Home":
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("""
     <div class="custom-card">
-        <small style="color: #64748b; font-weight: 600;">GỢI Ý BẮT ĐẦU</small>
-        <p style="margin: 8px 0 12px 0; font-weight: 500; color: #1e293b;">“Bố mẹ không cho mình dùng điện thoại nhiều, mình nên nói thế nào?”</p>
+        <small style="color: #fef08a; font-weight: 600;">GỢI Ý BẮT ĐẦU</small>
+        <p style="margin: 8px 0 12px 0; font-weight: 500; color: #ffffff;">“Bố mẹ không cho mình dùng điện thoại nhiều, mình nên nói thế nào?”</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -491,22 +504,4 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
                     )
                 )
 
-                answer = response.text
-                if not answer or not answer.strip():
-                    raise ValueError("Gemini không trả về nội dung văn bản.")
-
-                st.markdown(answer)
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": answer
-                })
-
-            except Exception as e:
-                if (
-                    st.session_state.messages
-                    and st.session_state.messages[-1].get("role") == "user"
-                    and st.session_state.messages[-1].get("content") == prompt
-                ):
-                    st.session_state.messages.pop()
-
-                st.error(f"Đã có lỗi khi kết nối Gemini: {type(e).__name__}: {e}")
+instance_answer = response.text
