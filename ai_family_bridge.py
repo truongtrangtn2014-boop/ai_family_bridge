@@ -113,7 +113,7 @@ def classify_conflict_topics(text):
     if any(k in t for k in [
         "không quan tâm", "bỏ mặc", "không để ý", "xa cách", "lạnh nhạt", "không thèm", 
         "bận rộn", "không hiểu con", "tủi thân", "cô đơn ở nhà", "bỏ bê", "xa lánh", 
-        "vô cảm", "không thèm nói chuyện", "nhà như cái trọ", "ít nói chuyện"
+        "vô cảm", "không thèm nói chuyện", "nhà như cái trọ", "ít nói chuyện", "lắng nghe", "chia sẻ" "bữa cơm gia đình", "quan tâm", "chăm sóc"
     ]):
         matched_topics.append("Kết nối gia đình & Sự quan tâm")
 
@@ -147,7 +147,7 @@ def get_base64_of_image(image_path):
 
 img_base64 = get_base64_of_image("background.png")
 
-# --- 5. CSS TÙY CHỈNH (ĐÃ SỬA LỖI f-string VÀ GIỮ NGUYÊN GIAO DIỆN NÚT TRẮNG CHỮ ĐEN) ---
+# --- 5. CSS TÙY CHỈNH ---
 custom_css = f"""
 <style>
 .stApp {{
@@ -327,6 +327,23 @@ if st.session_state.current_mode == "Quản trị":
     logs_df = load_all_logs()
 
     if not logs_df.empty and "content" in logs_df.columns:
+        # Chuẩn hóa nhãn hành vi khớp tuyệt đối với 4 hoạt động trang chủ
+        def normalize_category(cat):
+            if not isinstance(cat, str):
+                return "Tâm sự cùng AI"
+            c = cat.lower()
+            if "hiểu cảm xúc" in c:
+                return "Hiểu cảm xúc"
+            elif "đối thoại" in c or "giả lập" in c or "huấn luyện" in c:
+                return "Tập đối thoại"
+            elif "tiến bộ" in c or "đánh giá" in c:
+                return "Xem tiến bộ"
+            else:
+                return "Tâm sự cùng AI"
+        
+        if "category" in logs_df.columns:
+            logs_df["category"] = logs_df["category"].apply(normalize_category)
+
         logs_df["conflict_topics_list"] = logs_df["content"].apply(classify_conflict_topics)
         logs_df["conflict_topic_str"] = logs_df["conflict_topics_list"].apply(lambda x: ", ".join(x))
         
