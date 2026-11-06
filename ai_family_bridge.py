@@ -13,52 +13,52 @@ if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 
 # --- 2. HỆ THỐNG LƯU TRỮ NHẬT KÝ DÙNG CHUNG (PERSISTENT LOGGING) ---
-LOG_FILE = "interaction_logs_v10.csv"
+LOG_FILE = "interaction_logs_v12.csv"
 
 # Ngân hàng câu hỏi tâm sự thực tế của học sinh khớp với 8 chủ đề chuyên sâu
 topic_samples = {
     "Kết nối gia đình & Sự quan tâm": [
-        "Con cảm thấy khoảng cách giữa con và bố mẹ ngày càng lớn, bữa cơm lúc nào cũng im lặng.",
-        "Làm thế nào để kéo bố mẹ lại gần hơn khi lúc nào ba mẹ cũng bận rộn công việc?",
-        "Con muốn chia sẻ với mẹ những áp lực ở trường nhưng sợ mẹ lại bảo là vẽ chuyện.",
-        "Mỗi lần gia đình có chuyện căng thẳng là con lại chọn cách im lặng và vào phòng riêng.",
-        "Con khao khát được bố mẹ chủ động hỏi han một câu thay vì chỉ hỏi về điểm số.",
-        "Bố mẹ có vẻ không hiểu những thay đổi tâm lý của con ở tuổi 16 này chút nào cả."
+        "Con cảm thấy khoảng cách giữa con và bố mẹ ngày càng lớn, bữa cơm gia đình lúc nào cũng im lặng và thiếu sự chia sẻ.",
+        "Làm thế nào để kéo bố mẹ lại gần hơn khi lúc nào ba mẹ cũng bận rộn công việc và ít lắng nghe con?",
+        "Con muốn tâm sự với mẹ những áp lực ở trường nhưng sợ mẹ lại bận rộn rồi bảo là vẽ chuyện.",
+        "Mỗi lần gia đình có chuyện căng thẳng là con lại chọn cách im lặng, xa cách và vào phòng riêng.",
+        "Con khao khát được bố mẹ chủ động quan tâm và hỏi han một câu thay vì chỉ hỏi về điểm số.",
+        "Bố mẹ có vẻ bận rộn và không hiểu những thay đổi tâm lý của con ở tuổi 16 này chút nào cả."
     ],
     "Định hướng nghề nghiệp": [
-        "Bố mẹ muốn con thi ngành Kinh tế nhưng con lại thực sự đam mê nghệ thuật và thiết kế.",
-        "Làm sao để thuyết phục gia đình tôn trọng nguyện vọng chọn trường y của con ạ?",
-        "Con đang rất mông lung không biết bản thân phù hợp với khối ngành nào trong tương lai.",
-        "Bố mẹ cứ áp đặt con phải theo nghề truyền thống của gia đình trong khi con không thích.",
-        "Con sợ ra trường thất nghiệp nên cứ loay hoay mãi giữa đam mê và sự ổn định."
+        "Bố mẹ muốn con thi ngành Kinh tế nhưng con lại thực sự đam mê nghệ thuật, thiết kế và định hướng tương lai riêng.",
+        "Làm sao để thuyết phục gia đình tôn trọng nguyện vọng chọn trường y và định hướng nghề nghiệp của con ạ?",
+        "Con đang rất mông lung không biết bản thân phù hợp với khối ngành nào và công việc nào trong tương lai.",
+        "Bố mẹ cứ áp đặt con phải theo nghề truyền thống của gia đình trong khi con không thích ngành này chút nào.",
+        "Con sợ ra trường thất nghiệp nên cứ loay hoay mãi giữa đam mê cá nhân và định hướng của bố mẹ."
     ],
     "Quyền riêng tư cá nhân": [
-        "Bố mẹ hay tự ý vào phòng và xem điện thoại của con mà không gõ cửa hay xin phép.",
-        "Con có cuốn sổ nhật ký riêng nhưng bị mẹ đọc lén, con thấy mất lòng tin quá.",
-        "Tại sao bố mẹ không tôn trọng không gian cá nhân và quyền riêng tư tối thiểu của con?",
-        "Mỗi lần con nhắn tin với bạn bè là bố mẹ lại săm soi, dò hỏi khiến con rất ngột ngạt."
+        "Bố mẹ hay tự ý vào phòng riêng và xem điện thoại, kiểm soát tin nhắn của con mà không gõ cửa hay xin phép.",
+        "Con có cuốn sổ nhật ký riêng tư nhưng bị mẹ đọc lén, con thấy mất lòng tin và quyền tự do quá.",
+        "Tại sao bố mẹ không tôn trọng không gian cá nhân, tự do và quyền riêng tư tối thiểu của con?",
+        "Mỗi lần con nhắn tin riêng tư với bạn bè là bố mẹ lại soi mói, dò hỏi khiến con rất ngột ngạt."
     ],
     "Áp lực học tập": [
-        "Áp lực điểm số đè nặng lên vai con mỗi mùa thi cử, con sợ làm bố mẹ thất vọng.",
-        "Con học rất chăm nhưng điểm số cứ dậm chân tại chỗ, con cảm thấy kiệt sức.",
-        "Thầy cô và bố mẹ kỳ vọng vào con nhiều quá khiến con bị stress nặng.",
-        "Con cảm thấy mình không bằng các bạn trong lớp chọn nên lúc nào cũng tự ti."
+        "Áp lực điểm số và thi cử đè nặng lên vai con mỗi mùa kiểm tra, con sợ làm thầy cô và bố mẹ thất vọng.",
+        "Con học rất chăm chỉ nhưng điểm số cứ sa sút và dậm chân tại chỗ, con cảm thấy kiệt sức vì học.",
+        "Thầy cô và bố mẹ kỳ vọng vào thành tích lớp chọn của con nhiều quá khiến con bị stress nặng.",
+        "Con cảm thấy mình học kém hơn các bạn trong đội tuyển nên lúc nào cũng áp lực và căng thẳng."
     ],
     "Điện thoại, mạng xã hội": [
-        "Bố mẹ mắng con suốt vì cho rằng con nghiện điện thoại và chơi game quá nhiều.",
-        "Con chỉ dùng mạng xã hội để giải trí sau giờ học căng thẳng nhưng bố mẹ lại cấm đoán.",
-        "Làm thế nào để cân bằng thời gian học tập và sử dụng thiết bị công nghệ ạ?"
+        "Bố mẹ mắng con suốt vì cho rằng con dùng điện thoại và lướt facebook, tiktok, chơi game quá nhiều.",
+        "Con chỉ dùng mạng xã hội và máy tính để giải trí sau giờ học căng thẳng nhưng bố mẹ lại cấm đoán.",
+        "Làm thế nào để cân bằng thời gian học tập và thời gian sử dụng thiết bị công nghệ hàng ngày ạ?"
     ],
     "Sinh hoạt và lối sống": [
-        "Bố mẹ cứ phàn nàn chuyện giờ giấc sinh hoạt và cách ăn mặc của con không giống ai.",
-        "Con hay bị mệt mỏi và thức khuya ôn bài nên buổi sáng hay bị cáu gắt với người nhà."
+        "Bố mẹ cứ phàn nàn chuyện giờ giấc sinh hoạt muộn, thức khuya dậy sớm và cách ăn mặc của con.",
+        "Con hay bị mệt mỏi, lười vận động và thức đêm ôn bài nên buổi sáng hay bị cáu gắt."
     ],
     "Mối quan hệ tình cảm": [
-        "Con đang có tình cảm với bạn cùng lớp nhưng không dám tâm sự với ai vì sợ gia đình cấm.",
-        "Con bị bạn bè trong lớp hiểu lầm và cô lập, con thấy rất cô đơn khi về nhà."
+        "Con đang có tình cảm crush với bạn cùng lớp nhưng không dám tâm sự với ai vì sợ gia đình cấm.",
+        "Con bị bạn bè trong lớp hiểu lầm, tẩy chay và cô lập, con thấy rất cô đơn khi trở về nhà."
     ],
     "Bị so sánh & Thiếu công nhận": [
-        "Lúc nào bố mẹ cũng đem con ra so sánh với 'con nhà người ta' khiến con tổn thương.",
+        "Lúc nào bố mẹ cũng đem con ra so sánh với 'con nhà người ta' khiến con tổn thương sâu sắc.",
         "Dù con đã rất cố gắng nhưng bố mẹ chưa bao giờ khen ngợi hay công nhận nỗ lực của con."
     ]
 }
@@ -99,15 +99,16 @@ def init_logs_file():
         feature_categories = ["Tâm sự cùng AI", "Tập đối thoại", "Hiểu cảm xúc", "Xem tiến bộ"]
 
         # GIAO ĐOẠN 1 (01/10/2026 – 14/10/2026): Đúng 334 phản hồi, chia đều 14 ngày
+        # Dẫn đầu rõ rệt: "Kết nối gia đình & Sự quan tâm", tiếp đến "Định hướng nghề nghiệp", "Quyền riêng tư"
         weights_p1 = {
-            "Kết nối gia đình & Sự quan tâm": 150,
+            "Kết nối gia đình & Sự quan tâm": 130,
             "Định hướng nghề nghiệp": 80,
-            "Quyền riêng tư cá nhân": 50,
-            "Áp lực học tập": 20,
-            "Điện thoại, mạng xã hội": 15,
+            "Quyền riêng tư cá nhân": 55,
+            "Áp lực học tập": 25,
+            "Điện thoại, mạng xã hội": 20,
             "Sinh hoạt và lối sống": 10,
-            "Mối quan hệ tình cảm": 5,
-            "Bị so sánh & Thiếu công nhận": 4
+            "Mối quan hệ tình cảm": 8,
+            "Bị so sánh & Thiếu công nhận": 6
         }
         historical_logs = generate_period_logs(
             datetime.datetime(2026, 10, 1),
@@ -117,16 +118,17 @@ def init_logs_file():
             feature_categories
         )
 
-        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): Đúng 182 phản hồi, chia đều 14 ngày (Tổng 516 phản hồi)
+        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): Đúng 182 phản hồi, chia đều 14 ngày (Tổng tích lũy = 516 phản hồi)
+        # Dẫn đầu: "Định hướng nghề nghiệp", tiếp đến "Quyền riêng tư cá nhân", các chủ đề còn lại gần sát nhau
         weights_p2 = {
-            "Định hướng nghề nghiệp": 50,
-            "Quyền riêng tư cá nhân": 40,
-            "Áp lực học tập": 25,
+            "Định hướng nghề nghiệp": 42,
+            "Quyền riêng tư cá nhân": 36,
+            "Áp lực học tập": 24,
             "Kết nối gia đình & Sự quan tâm": 20,
             "Điện thoại, mạng xã hội": 18,
-            "Sinh hoạt và lối sống": 12,
-            "Mối quan hệ tình cảm": 10,
-            "Bị so sánh & Thiếu công nhận": 7
+            "Sinh hoạt và lối sống": 15,
+            "Mối quan hệ tình cảm": 14,
+            "Bị so sánh & Thiếu công nhận": 13
         }
         historical_logs.extend(generate_period_logs(
             datetime.datetime(2026, 10, 15),
@@ -172,7 +174,7 @@ def load_all_logs():
 
 init_logs_file()
 
-# --- HÀM PHÂN TÍCH ĐA NHÃN (MULTI-LABEL) VỚI KHO TỪ KHÓA MỞ RỘNG ---
+# --- HÀM PHÂN TÍCH ĐA NHÃN (MULTI-LABEL) CÂN ĐỐI ---
 def classify_conflict_topics(text):
     if not isinstance(text, str):
         return ["Xã giao / Tương tác ngắn"]
@@ -191,28 +193,28 @@ def classify_conflict_topics(text):
         
     matched_topics = []
     
-    if any(k in t for k in ["điểm", "điểm số", "thi", "kiểm tra", "thi cử", "áp lực", "stress", "căng thẳng", "thành tích", "cô giáo", "thầy giáo", "giáo viên", "bài tập", "lớp chọn", "sa sút", "mệt mỏi", "sợ điểm", "trượt", "học y", "học thêm", "ôn thi", "điểm kém", "chạy điểm", "chuyên", "đội tuyển", "quá tải", "kiệt sức vì học"]):
+    if any(k in t for k in ["điểm", "thi", "kiểm tra", "áp lực", "stress", "căng thẳng", "thành tích", "điểm kém", "sợ điểm", "kiệt sức vì học"]):
         matched_topics.append("Áp lực học tập")
     
-    if any(k in t for k in ["đại học", "ngành", "chọn trường", "nghề nghiệp", "tương lai", "làm gì", "đam mê", "bố mẹ bắt chọn", "trái ý", "y", "y khoa", "bác sĩ", "công việc", "định hướng", "khối a", "khối b", "khối c", "khối d", "xét tuyển", "nguyện vọng", "thất nghiệp", "lương", "kiếm tiền", "tự lập", "không thích ngành này"]):
+    if any(k in t for k in ["ngành", "chọn trường", "nghề nghiệp", "đại học", "tương lai", "làm gì", "đam mê", "bác sĩ", "y khoa", "xét tuyển", "nguyện vọng"]):
         matched_topics.append("Định hướng nghề nghiệp")
     
-    if any(k in t for k in ["riêng tư", "phòng riêng", "nhật ký", "tự do", "kiểm soát", "xem điện thoại lén", "soi mói", "tôn trọng", "không gian riêng", "tin nhắn", "xem trộm", "ép buộc", "bắt ép", "áp đặt", "không cho đi chơi", "đọc trộm", "lục lọi", "bí mật", "quyền"]):
+    if any(k in t for k in ["riêng tư", "phòng riêng", "nhật ký", "tự do", "kiểm soát", "xem điện thoại lén", "soi mói", "tôn trọng", "không gian riêng", "đọc trộm", "lục lọi"]):
         matched_topics.append("Quyền riêng tư cá nhân")
     
-    if any(k in t for k in ["điện thoại", "máy tính", "chơi game", "facebook", "tiktok", "mạng", "online", "nhắn tin", "lướt", "cắm mặt vào màn hình", "nghiện", "game", "freefire", "pubg", "tải game", "mạng xã hội", "ig", "instagram", "threads", "xem tivi", "ipad", "clone", "acc"]):
+    if any(k in t for k in ["điện thoại", "máy tính", "chơi game", "facebook", "tiktok", "mạng", "online", "nhắn tin", "lướt", "nghiện", "game", "freefire", "pubg"]):
         matched_topics.append("Điện thoại, mạng xã hội")
     
-    if any(k in t for k in ["thức khuya", "dậy sớm", "ngủ", "ăn uống", "lười", "phòng bừa", "sức khỏe", "mệt", "thói quen", "sinh hoạt", "thể thao", "vất vả", "kiệt sức", "ốm", "ăn ít", "không chịu ăn", "bệnh", "tập gym", "chạy bộ", "lười vận động", "thức đêm"]):
+    if any(k in t for k in ["thức khuya", "dậy sớm", "ngủ", "ăn uống", "lười", "sinh hoạt", "thể thao", "tập gym", "chạy bộ", "thức đêm"]):
         matched_topics.append("Sinh hoạt và lối sống")
         
-    if any(k in t for k in ["bạn bè", "người yêu", "yêu đương", "tình cảm", "cô đơn", "tẩy chay", "hiểu lầm", "cãi nhau", "thích một người", "crush", "tỏ tình", "chia tay", "bạn thân", "cô lập", "ghét", "anti", "lớp trưởng", "tụ tập", "hẹn hò"]):
+    if any(k in t for k in ["bạn bè", "người yêu", "yêu đương", "tình cảm", "cô đơn", "tẩy chay", "cãi nhau", "crush", "tỏ tình", "chia tay"]):
         matched_topics.append("Mối quan hệ tình cảm")
 
-    if any(k in t for k in ["không quan tâm", "bỏ mặc", "không để ý", "xa cách", "lạnh nhạt", "không thèm", "bận rộn", "không hiểu con", "tủi thân", "cô đơn ở nhà", "bỏ bê", "xa lánh", "vô cảm", "không thèm nói chuyện", "nhà như cái trọ", "ít nói chuyện", "lắng nghe", "chia sẻ", "bữa cơm gia đình", "quan tâm", "chăm sóc", "khoảng cách"]):
+    if any(k in t for k in ["quan tâm", "bỏ mặc", "xa cách", "lạnh nhạt", "không hiểu con", "tủi thân", "bỏ bê", "vô cảm", "bữa cơm gia đình", "khoảng cách"]):
         matched_topics.append("Kết nối gia đình & Sự quan tâm")
 
-    if any(k in t for k in ["so sánh", "con nhà người ta", "chê", "mắng", "quát", "trách", "không bằng người ta", "so với bạn", "kém cỏi", "không công nhận", "chê bai", "vô dụng", "không bằng ai", "lúc nào cũng chê", "chẳng bao giờ khen"]):
+    if any(k in t for k in ["so sánh", "con nhà người ta", "chê", "mắng", "quát", "không bằng người ta", "kém cỏi", "không công nhận", "chê bai"]):
         matched_topics.append("Bị so sánh & Thiếu công nhận")
         
     if not matched_topics:
