@@ -20,7 +20,6 @@ def init_logs_file():
         logs = []
         random.seed(42)
 
-        # Hàm phụ trợ phân bổ đều ngẫu nhiên có trọng số trong khoảng ngày
         def generate_period_logs(start_date, end_date, total_count, topic_weights, categories):
             delta_days = (end_date - start_date).days + 1
             base_per_day = total_count // delta_days
