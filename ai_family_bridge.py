@@ -440,4 +440,208 @@ if st.session_state.current_mode == "Quản trị":
         exploded_df = logs_df.explode("conflict_topics_list")
         
         filtered_trend_df = exploded_df[
-            (~exploded
+            (~exploded_df["conflict_topics_list"].isin(["Xã giao / Tương tác ngắn", "Tâm tư khác"]))
+        ]
+        
+        topic_counts = filtered_trend_df["conflict_topics_list"].value_counts()
+        top_topic = topic_counts.index[0] if not topic_counts.empty else "Chưa có dữ liệu"
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Tổng lượt trao đổi", len(logs_df))
+        col2.metric("Chủ đề nổi cộm nhất", top_topic)
+        col3.metric("Mô hình can thiệp", "NVC (4 bước)")
+
+        st.markdown("### 📊 Xu hướng vấn đề tâm lý học sinh băn khoăn nhất")
+        st.caption("Biểu đồ thống kê tập trung vào 8 nhóm chủ đề băn khoăn chuyên sâu của học sinh:")
+        if not topic_counts.empty:
+            st.bar_chart(topic_counts)
+        else:
+            st.info("Chưa ghi nhận đủ dữ liệu băn khoăn tâm lý chuyên sâu.")
+
+        st.markdown("### 📈 Phân bổ hành vi sử dụng tính năng")
+        if "category" in logs_df.columns:
+            st.bar_chart(logs_df["category"].value_counts())
+
+        st.markdown("### 📋 Nhật ký tương tác chi tiết (Toàn bộ lịch sử)")
+        display_df = logs_df[["timestamp", "conflict_topic_str", "category", "content"]].tail(25)
+        display_df.columns = ["Thời gian", "Các chủ đề nhận diện", "Chức năng", "Nội dung tâm sự"]
+        st.dataframe(
+            display_df, 
+            use_container_width=True, 
+            hide_index=True
+        )
+        
+        st.download_button(
+            "Xuất dữ liệu CSV phân tích",
+            data=logs_df.to_csv(index=False).encode("utf-8-sig"),
+            file_name="ai_family_bridge_classified_logs.csv",
+            mime="text/csv",
+        )
+    else:
+        st.info("Chưa có lượt trao đổi nào được ghi nhận.")
+    
+    if st.button("⬅ Quay lại trang chủ"):
+        st.session_state.current_mode = "Home"
+        st.rerun()
+    st.stop()
+
+# --- 11. GIAO DIỆN TRANG CHỦ ---
+if st.session_state.current_mode == "Home":
+    st.markdown("""
+    <div class="hero-banner">
+        <div style="font-size: 13px; opacity: 0.8; margin-bottom: 6px; letter-spacing: 1px;">📁 KHÔNG GIAN KẾT NỐI</div>
+        <h3 style="margin: 0 0 10px 0; font-size: 24px;">Hiểu mình. Hiểu bố mẹ. Gần nhau hơn.</h3>
+        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Lắng nghe cảm xúc, luyện tập đối thoại và xây dựng kết nối gia đình tích cực dựa trên nguyên lý NVC.</p>
+        <div style="background: rgba(255,255,255,0.1); padding: 12px 16px; border-radius: 10px; margin-top: 15px; font-size: 13px;">
+            💬 <b>Xin chào! Hôm nay bạn muốn bắt đầu từ đâu?</b>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("#### Chọn hoạt động")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("💬 **Tâm sự cùng AI**\n\n Chia sẻ điều khó nói", use_container_width=True):
+            st.session_state.current_mode = "Tâm sự cùng AI"
+            st.session_state.messages = [{"role": "assistant", "content": "AI Family Bridge luôn ở đây lắng nghe mọi tâm tư của cậu. Hãy chia sẻ với mình nhé..."}]
+            st.rerun()
+        
+        if st.button("💙 **Hiểu cảm xúc**\n\n Gọi tên cảm xúc cá nhân", use_container_width=True):
+            st.session_state.current_mode = "Hiểu cảm xúc"
+            st.session_state.messages = [{"role": "assistant", "content": "Cảm xúc của cậu lúc này thế nào? Hãy kể cho mình nghe một sự việc vừa xảy ra nhé..."}]
+            st.rerun()
+
+    with col2:
+        if st.button("👥 **Tập đối thoại**\n\n Thử vai bố hoặc mẹ (Role-play)", use_container_width=True):
+            st.session_state.current_mode = "Tập đối thoại"
+            st.session_state.messages = [{"role": "assistant", "content": "Chúng ta bắt đầu nhé! Cậu muốn mình đóng vai **Bố** hay **Mẹ**, và tình huống cần gỡ rối là gì nhỉ?"}]
+            st.rerun()
+
+        if st.button("📈 **Xem tiến bộ**\n\n Đánh giá kỹ năng ứng xử", use_container_width=True):
+            st.session_state.current_mode = "Xem tiến bộ"
+            st.session_state.messages = [{"role": "assistant", "content": "Hệ thống ghi nhận cậu đã tham gia rất nghiêm túc. Việc duy trì đối thoại chính là cây cầu nối ngắn nhất giữa các thế hệ..."}]
+            st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("""
+    <div class="custom-card">
+        <small style="color: #fef08a; font-weight: 600;">GỢI Ý BẮT ĐẦU</small>
+        <p style="margin: 8px 0 12px 0; font-weight: 500; color: #ffffff;">“Bố mẹ không cho mình dùng điện thoại nhiều, mình nên nói thế nào?”</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if st.button("Luyện tình huống này ➔", type="primary"):
+        st.session_state.current_mode = "Tập đối thoại"
+        st.session_state.messages = [
+            {"role": "assistant", "content": "Cảm giác bị hạn chế không gian riêng hẳn là rất khó chịu đúng không cậu? Nhưng đằng sau sự nghiêm khắc ấy đôi khi là nỗi lo lắng chưa biết giãi bày của cha mẹ. Nếu cậu sẵn sàng, chúng ta cùng thử tập dượt cách trò chuyện nhé!"}
+        ]
+        st.rerun()
+
+    st.stop()
+
+# --- 12. GIAO DIỆN TRÒ CHUYỆN VÀ GHI DỮ LIỆU ---
+st.markdown(f"### 🌉 Đang ở chế độ: {st.session_state.current_mode}")
+if st.button("⬅ Quay lại danh sách hoạt động"):
+    st.session_state.current_mode = "Home"
+    st.session_state.messages = []
+    st.rerun()
+st.markdown("---")
+
+system_instruction = f"""
+Bạn là "AI Family Bridge", một người bạn đồng hành tâm lý và người hướng dẫn kỹ năng Giao tiếp trắc ẩn (NVC) dành cho học sinh THPT. Người dùng đang ở chế độ: {st.session_state.current_mode}.
+
+NỀN TẢNG TRI THỨC NGẦM:
+- Phương pháp NVC (Marshall B. Rosenberg): Quan sát khách quan, Gọi tên cảm xúc, Xác định nhu cầu ngầm và Đề xuất giải pháp đối thoại.
+- Thấu hiểu tâm lý lứa tuổi: Áp lực học tập, định hướng nghề nghiệp, quyền riêng tư, thiết bị số, sinh hoạt lối sống, các mối quan hệ tình cảm, kết nối gia đình và sự so sánh công nhận.
+
+QUY TẮC PHẢN HỒI BẮT BUỘC:
+1. Độ dài: Ngắn gọn, từ 2 đến 4 câu, trọng tâm, tự nhiên, không diễn giải dài dòng như văn mẫu.
+2. Ngữ điệu: Lắng nghe chân thành, ấm áp, không phán xét. Xưng hô: "mình" - "cậu" hoặc "bạn".
+3. TUYỆT ĐỐI CẤM MẪU CÂU RẬP KHUÔN (RẤT QUAN TRỌNG):
+   - CẤM sử dụng các câu mở/kết thúc lặp lại như: "Em có muốn thử...", "Nếu em cảm thấy sẵn sàng...", "Liệu có cách nào để bố mẹ...".
+   - Không chêm câu hỏi mời mọc cố định ở cuối mỗi tin nhắn. Hãy kết thúc câu tự nhiên như một cuộc trò chuyện trực tiếp giữa hai người bạn.
+4. XỬ LÝ THEO NGỮ CẢNH:
+   - Khi học sinh trút giận hoặc buồn: Lắng nghe, xác nhận và phản chiếu lại chính xác cảm xúc đó (tủi thân, áp lực, ngột ngạt), không vội đưa ra bài học đạo đức hay lời khuyên ngay.
+   - Khi học sinh hỏi cách giải quyết: Đi thẳng vào gợi ý một câu nói cụ thể hoặc bóc tách góc nhìn của phụ huynh dựa trên chính chi tiết học sinh vừa kể.
+"""
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    append_log(
+        timestamp=datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+        category=st.session_state.current_mode,
+        content=prompt
+    )
+
+    with st.chat_message("assistant"):
+        with st.spinner("AI Family Bridge đang lắng nghe và phản hồi chuẩn xác..."):
+            try:
+                api_history = []
+                started = False
+
+                for item in st.session_state.messages:
+                    role = item.get("role")
+                    content = item.get("content", "")
+
+                    if role == "user":
+                        started = True
+                        api_role = "user"
+                    elif role == "assistant":
+                        if not started:
+                            continue
+                        api_role = "model"
+                    else:
+                        continue
+
+                    if content and content.strip():
+                        api_history.append(
+                            types.Content(
+                                role=api_role,
+                                parts=[types.Part.from_text(text=content)]
+                            )
+                        )
+
+                api_history = api_history[-12:]
+                while api_history and api_history[0].role != "user":
+                    api_history.pop(0)
+
+                if not api_history:
+                    raise ValueError("Không tạo được lịch sử hội thoại hợp lệ.")
+
+                response = client.models.generate_content(
+                    model=MODEL_NAME,
+                    contents=api_history,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_instruction,
+                        temperature=0.6,
+                    )
+                )
+
+                answer = response.text
+                if not answer or not answer.strip():
+                    raise ValueError("Gemini không trả về nội dung văn bản.")
+
+                st.markdown(answer)
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": answer
+                })
+
+            except Exception as e:
+                if (
+                    st.session_state.messages
+                    and st.session_state.messages[-1].get("role") == "user"
+                    and st.session_state.messages[-1].get("content") == prompt
+                ):
+                    st.session_state.messages.pop()
+
+                st.error(f"Đã có lỗi khi kết nối Gemini: {type(e).__name__}: {e}")
