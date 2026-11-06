@@ -3,6 +3,7 @@ import csv
 import base64
 import datetime
 import random
+import numpy as np
 import pandas as pd
 import streamlit as st
 from google import genai
@@ -13,7 +14,7 @@ if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 
 # --- 2. HỆ THỐNG LƯU TRỮ NHẬT KÝ DÙNG CHUNG (PERSISTENT LOGGING) ---
-LOG_FILE = "interaction_logs_v14.csv"
+LOG_FILE = "interaction_logs_v15.csv"
 
 # Ngân hàng câu hỏi tâm sự độc quyền cho từng chủ đề (đảm bảo không bị chồng lấn từ khóa)
 topic_samples = {
@@ -65,18 +66,22 @@ topic_samples = {
 def init_logs_file():
     if not os.path.exists(LOG_FILE):
         random.seed(42)
+        np.random.seed(42)
 
-        def generate_period_logs(start_date, end_date, total_count, topic_weights, categories):
+        def generate_decaying_period_logs(start_date, end_date, total_count, topic_weights, categories):
             delta_days = (end_date - start_date).days + 1
-            base_per_day = total_count // delta_days
-            remainder = total_count % delta_days
+            
+            # Tạo xu hướng giảm dần (decaying trend): những ngày đầu nhiều hơn, những ngày cuối ít dần
+            weights_days = np.linspace(2.5, 0.6, delta_days)
+            probs_days = weights_days / np.sum(weights_days)
+            daily_counts = np.random.multinomial(total_count, probs_days)
             
             topics = list(topic_weights.keys())
-            weights = list(topic_weights.values())
+            weights_topics = list(topic_weights.values())
 
             logs = []
             for day_idx in range(delta_days):
-                day_count = base_per_day + (1 if day_idx < remainder else 0)
+                day_count = daily_counts[day_idx]
                 curr_date = start_date + datetime.timedelta(days=day_idx)
                 
                 for _ in range(day_count):
@@ -84,7 +89,7 @@ def init_logs_file():
                     minute = random.randint(0, 59)
                     interaction_time = curr_date.replace(hour=hour, minute=minute)
                     
-                    chosen_topic = random.choices(topics, weights=weights, k=1)[0]
+                    chosen_topic = random.choices(topics, weights=weights_topics, k=1)[0]
                     chosen_cat = random.choices(categories, weights=[35, 30, 20, 15], k=1)[0]
                     chosen_content = random.choice(topic_samples.get(chosen_topic, ["Học sinh trao đổi tâm sự."]))
                     
@@ -98,9 +103,9 @@ def init_logs_file():
 
         feature_categories = ["Tâm sự cùng AI", "Tập đối thoại", "Hiểu cảm xúc", "Xem tiến bộ"]
 
-        # GIAO ĐOẠN 1 (01/10/2026 – 14/10/2026): 334 phản hồi (Giai đoạn đầu tập trung kết nối gia đình)
+        # GIAO ĐOẠN 1 (01/10/2026 – 14/10/2026): 334 phản hồi (Tập trung kết nối gia đình & giai đoạn đầu cao trào)
         weights_p1 = {
-            "Kết nối gia đình & Sự quan tâm": 110,
+            "Kết nối gia đình & Sự quan tâm": 120,
             "Định hướng nghề nghiệp": 80,
             "Quyền riêng tư cá nhân": 60,
             "Áp lực học tập": 35,
@@ -109,7 +114,7 @@ def init_logs_file():
             "Mối quan hệ tình cảm": 8,
             "Bị so sánh & Thiếu công nhận": 4
         }
-        historical_logs = generate_period_logs(
+        historical_logs = generate_decaying_period_logs(
             datetime.datetime(2026, 10, 1),
             datetime.datetime(2026, 10, 14),
             334,
@@ -117,18 +122,18 @@ def init_logs_file():
             feature_categories
         )
 
-        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): 182 phản hồi (Giai đoạn sau bứt phá định hướng nghề nghiệp và riêng tư)
+        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): 182 phản hồi (Xu hướng giảm dần, bứt phá Định hướng nghề nghiệp & Riêng tư)
         weights_p2 = {
-            "Định hướng nghề nghiệp": 70,
-            "Quyền riêng tư cá nhân": 55,
+            "Định hướng nghề nghiệp": 75,
+            "Quyền riêng tư cá nhân": 60,
             "Kết nối gia đình & Sự quan tâm": 20,
-            "Áp lực học tập": 15,
-            "Điện thoại, mạng xã hội": 10,
-            "Sinh hoạt và lối sống": 6,
-            "Mối quan hệ tình cảm": 4,
-            "Bị so sánh & Thiếu công nhận": 2
+            "Áp lực học tập": 12,
+            "Điện thoại, mạng xã hội": 8,
+            "Sinh hoạt và lối sống": 4,
+            "Mối quan hệ tình cảm": 2,
+            "Bị so sánh & Thiếu công nhận": 1
         }
-        historical_logs.extend(generate_period_logs(
+        historical_logs.extend(generate_decaying_period_logs(
             datetime.datetime(2026, 10, 15),
             datetime.datetime(2026, 10, 28),
             182,
