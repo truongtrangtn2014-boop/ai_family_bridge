@@ -13,7 +13,7 @@ if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 
 # --- 2. HỆ THỐNG LƯU TRỮ NHẬT KÝ DÙNG CHUNG (PERSISTENT LOGGING) ---
-LOG_FILE = "interaction_logs_v3.csv"
+LOG_FILE = "interaction_logs_v4.csv"
 
 # Ngân hàng câu hỏi tâm sự thực tế của học sinh khớp với 8 chủ đề chuyên sâu
 topic_samples = {
@@ -80,6 +80,7 @@ def init_logs_file():
                 day_count = base_per_day + (1 if day_idx < remainder else 0)
                 curr_date = start_date + datetime.timedelta(days=day_idx)
                 
+                # Rải đều khung giờ tự nhiên trong ngày
                 for _ in range(day_count):
                     hour = random.choice([7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21])
                     minute = random.randint(0, 59)
@@ -96,39 +97,41 @@ def init_logs_file():
                     })
             return logs
 
-        # GIAO ĐOẠN 1: Từ 20/10/2026 đến 31/10/2026 (Tổng 334 phản hồi)
+        # GIAO ĐOẠN 1 (01/10/2026 – 14/10/2026): Tổng 334 phản hồi
+        # "Kết nối gia đình & Sự quan tâm" dẫn đầu, tiếp đến "Định hướng nghề nghiệp", "Quyền riêng tư cá nhân", còn lại cào bằng
         weights_p1 = {
-            "Kết nối gia đình & Sự quan tâm": 35,
-            "Định hướng nghề nghiệp": 25,
-            "Quyền riêng tư cá nhân": 18,
-            "Áp lực học tập": 8,
-            "Điện thoại, mạng xã hội": 6,
-            "Sinh hoạt và lối sống": 4,
-            "Mối quan hệ tình cảm": 2,
-            "Bị so sánh & Thiếu công nhận": 2
+            "Kết nối gia đình & Sự quan tâm": 110,
+            "Định hướng nghề nghiệp": 80,
+            "Quyền riêng tư cá nhân": 60,
+            "Áp lực học tập": 25,
+            "Điện thoại, mạng xã hội": 20,
+            "Sinh hoạt và lối sống": 15,
+            "Mối quan hệ tình cảm": 14,
+            "Bị so sánh & Thiếu công nhận": 10
         }
         historical_logs = generate_period_logs(
-            datetime.datetime(2026, 10, 20),
-            datetime.datetime(2026, 10, 31),
+            datetime.datetime(2026, 10, 1),
+            datetime.datetime(2026, 10, 14),
             334,
             weights_p1,
             ["Tâm sự cùng AI", "Tập đối thoại", "Hiểu cảm xúc"]
         )
 
-        # GIAO ĐOẠN 2: Từ 01/11/2026 đến 06/11/2026 (Tổng 516 phản hồi)
+        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): Tổng 516 phản hồi
+        # "Định hướng nghề nghiệp" dẫn đầu, "Quyền riêng tư cá nhân" thứ hai, các chủ đề khác gần sát nhau
         weights_p2 = {
-            "Định hướng nghề nghiệp": 30,
-            "Quyền riêng tư cá nhân": 26,
-            "Kết nối gia đình & Sự quan tâm": 12,
-            "Áp lực học tập": 10,
-            "Điện thoại, mạng xã hội": 9,
-            "Sinh hoạt và lối sống": 6,
-            "Mối quan hệ tình cảm": 4,
-            "Bị so sánh & Thiếu công nhận": 3
+            "Định hướng nghề nghiệp": 130,
+            "Quyền riêng tư cá nhân": 105,
+            "Kết nối gia đình & Sự quan tâm": 65,
+            "Áp lực học tập": 60,
+            "Điện thoại, mạng xã hội": 55,
+            "Sinh hoạt và lối sống": 40,
+            "Mối quan hệ tình cảm": 35,
+            "Bị so sánh & Thiếu công nhận": 26
         }
         historical_logs.extend(generate_period_logs(
-            datetime.datetime(2026, 11, 1),
-            datetime.datetime(2026, 11, 6),
+            datetime.datetime(2026, 10, 15),
+            datetime.datetime(2026, 10, 28),
             516,
             weights_p2,
             ["Tâm sự cùng AI", "Tập đối thoại", "Hiểu cảm xúc"]
