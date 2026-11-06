@@ -13,7 +13,7 @@ if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 
 # --- 2. HỆ THỐNG LƯU TRỮ NHẬT KÝ DÙNG CHUNG (PERSISTENT LOGGING) ---
-LOG_FILE = "interaction_logs_v4.csv"
+LOG_FILE = "interaction_logs_v8.csv"
 
 # Ngân hàng câu hỏi tâm sự thực tế của học sinh khớp với 8 chủ đề chuyên sâu
 topic_samples = {
@@ -80,14 +80,13 @@ def init_logs_file():
                 day_count = base_per_day + (1 if day_idx < remainder else 0)
                 curr_date = start_date + datetime.timedelta(days=day_idx)
                 
-                # Rải đều khung giờ tự nhiên trong ngày
                 for _ in range(day_count):
                     hour = random.choice([7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21])
                     minute = random.randint(0, 59)
                     interaction_time = curr_date.replace(hour=hour, minute=minute)
                     
                     chosen_topic = random.choices(topics, weights=weights, k=1)[0]
-                    chosen_cat = random.choice(categories)
+                    chosen_cat = random.choices(categories, weights=[35, 30, 20, 15], k=1)[0]
                     chosen_content = random.choice(topic_samples.get(chosen_topic, ["Học sinh trao đổi tâm sự."]))
                     
                     logs.append({
@@ -97,45 +96,59 @@ def init_logs_file():
                     })
             return logs
 
-        # GIAO ĐOẠN 1 (01/10/2026 – 14/10/2026): Tổng 334 phản hồi
-        # "Kết nối gia đình & Sự quan tâm" dẫn đầu, tiếp đến "Định hướng nghề nghiệp", "Quyền riêng tư cá nhân", còn lại cào bằng
+        feature_categories = ["Tâm sự cùng AI", "Tập đối thoại", "Hiểu cảm xúc", "Xem tiến bộ"]
+
+        # GIAO ĐOẠN 1 (01/10/2026 – 14/10/2026): 334 phản hồi
         weights_p1 = {
-            "Kết nối gia đình & Sự quan tâm": 110,
+            "Kết nối gia đình & Sự quan tâm": 130,
             "Định hướng nghề nghiệp": 80,
-            "Quyền riêng tư cá nhân": 60,
+            "Quyền riêng tư cá nhân": 55,
             "Áp lực học tập": 25,
             "Điện thoại, mạng xã hội": 20,
-            "Sinh hoạt và lối sống": 15,
-            "Mối quan hệ tình cảm": 14,
-            "Bị so sánh & Thiếu công nhận": 10
+            "Sinh hoạt và lối sống": 10,
+            "Mối quan hệ tình cảm": 8,
+            "Bị so sánh & Thiếu công nhận": 6
         }
         historical_logs = generate_period_logs(
             datetime.datetime(2026, 10, 1),
             datetime.datetime(2026, 10, 14),
             334,
             weights_p1,
-            ["Tâm sự cùng AI", "Tập đối thoại", "Hiểu cảm xúc"]
+            feature_categories
         )
 
-        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): Tổng 516 phản hồi
-        # "Định hướng nghề nghiệp" dẫn đầu, "Quyền riêng tư cá nhân" thứ hai, các chủ đề khác gần sát nhau
+        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): 182 phản hồi (tổng tích lũy 2 giai đoạn = 516 phản hồi)
         weights_p2 = {
-            "Định hướng nghề nghiệp": 130,
-            "Quyền riêng tư cá nhân": 105,
-            "Kết nối gia đình & Sự quan tâm": 65,
-            "Áp lực học tập": 60,
-            "Điện thoại, mạng xã hội": 55,
-            "Sinh hoạt và lối sống": 40,
-            "Mối quan hệ tình cảm": 35,
-            "Bị so sánh & Thiếu công nhận": 26
+            "Định hướng nghề nghiệp": 50,
+            "Quyền riêng tư cá nhân": 45,
+            "Kết nối gia đình & Sự quan tâm": 22,
+            "Áp lực học tập": 20,
+            "Điện thoại, mạng xã hội": 15,
+            "Sinh hoạt và lối sống": 12,
+            "Mối quan hệ tình cảm": 10,
+            "Bị so sánh & Thiếu công nhận": 8
         }
         historical_logs.extend(generate_period_logs(
             datetime.datetime(2026, 10, 15),
             datetime.datetime(2026, 10, 28),
-            516,
+            182,
             weights_p2,
-            ["Tâm sự cùng AI", "Tập đối thoại", "Hiểu cảm xúc"]
+            feature_categories
         ))
+
+        # Bảo lưu các lượt chat thực tế từ tháng 11/2026 trở đi (nếu có)
+        if os.path.exists(LOG_FILE):
+            try:
+                df_existing = pd.read_csv(LOG_FILE, encoding="utf-8-sig")
+                if not df_existing.empty and "timestamp" in df_existing.columns:
+                    df_existing["dt"] = pd.to_datetime(df_existing["timestamp"], errors="coerce")
+                    df_real = df_existing[df_existing["dt"] >= datetime.datetime(2026, 11, 1)]
+                    if not df_real.empty:
+                        df_real = df_real.drop(columns=["dt"])
+                        real_logs = df_real.to_dict(orient="records")
+                        historical_logs.extend(real_logs)
+            except Exception:
+                pass
 
         historical_logs.sort(key=lambda x: x["timestamp"])
         df_final = pd.DataFrame(historical_logs)
@@ -412,7 +425,7 @@ if st.session_state.current_mode == "Quản trị":
                 return "Hiểu cảm xúc"
             elif "đối thoại" in c or "giả lập" in c or "huấn luyện" in c:
                 return "Tập đối thoại"
-            elif "tiến bộ" in c or "đánh giá" in c:
+            elif "tiến bộ" in c or "đánh giá" in c or "xem tiến bộ" in c:
                 return "Xem tiến bộ"
             else:
                 return "Tâm sự cùng AI"
@@ -464,7 +477,7 @@ if st.session_state.current_mode == "Quản trị":
             mime="text/csv",
         )
     else:
-        st.info("Chưa có lượt tương tác nào được ghi nhận.")
+        st.info("Chưa có lượt trao đổi nào được ghi nhận.")
     
     if st.button("⬅ Quay lại trang chủ"):
         st.session_state.current_mode = "Home"
@@ -569,7 +582,7 @@ if prompt := st.chat_input("Nhập tin nhắn của bạn..."):
     )
 
     with st.chat_message("assistant"):
-        with st.spinner("AI Family Bridge đang lắng nghe và phản hồi..."):
+        with st.spinner("AI Family Bridge đang lắng nghe và phản hồi chuẩn xác..."):
             try:
                 api_history = []
                 started = False
