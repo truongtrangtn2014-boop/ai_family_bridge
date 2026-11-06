@@ -13,18 +13,10 @@ if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 
 # --- 2. HỆ THỐNG LƯU TRỮ NHẬT KÝ DÙNG CHUNG (PERSISTENT LOGGING) ---
-LOG_FILE = "interaction_logs_v13.csv"
+LOG_FILE = "interaction_logs_v14.csv"
 
-# Ngân hàng câu hỏi tâm sự độc quyền cho từng chủ đề (không bị chồng lấn từ khóa)
+# Ngân hàng câu hỏi tâm sự độc quyền cho từng chủ đề (đảm bảo không bị chồng lấn từ khóa)
 topic_samples = {
-    "Kết nối gia đình & Sự quan tâm": [
-        "Con cảm thấy khoảng cách ngày càng lớn, bữa cơm gia đình lúc nào cũng im lặng và thiếu sự chia sẻ.",
-        "Làm thế nào để kéo bố mẹ lại gần hơn khi lúc nào ba mẹ cũng bận rộn công việc và ít lắng nghe con?",
-        "Con muốn tâm sự với mẹ những chuyện buồn ở trường nhưng sợ mẹ bận rộn không quan tâm.",
-        "Mỗi lần gia đình có chuyện căng thẳng là con lại chọn cách im lặng, xa cách và vào phòng riêng.",
-        "Con khao khát được bố mẹ chủ động quan tâm và hỏi han một câu thay vì chỉ hỏi điểm số.",
-        "Bố mẹ quá bận rộn và không hiểu những thay đổi tâm lý của con ở tuổi 16 này chút nào cả."
-    ],
     "Định hướng nghề nghiệp": [
         "Bố mẹ muốn con thi ngành Kinh tế nhưng con lại thực sự đam mê nghệ thuật, thiết kế tương lai riêng.",
         "Làm sao để thuyết phục gia đình tôn trọng nguyện vọng chọn trường y và định hướng nghề nghiệp ạ?",
@@ -37,6 +29,13 @@ topic_samples = {
         "Con có cuốn sổ nhật ký riêng tư nhưng bị người lớn đọc lén, con thấy mất lòng tin và tự do quá.",
         "Tại sao bố mẹ không tôn trọng không gian cá nhân, tự do và quyền riêng tư tối thiểu của con?",
         "Mỗi lần con nhắn tin riêng tư với bạn bè là bố mẹ lại soi mói, dò hỏi khiến con rất ngột ngạt."
+    ],
+    "Kết nối gia đình & Sự quan tâm": [
+        "Con cảm thấy khoảng cách ngày càng lớn, bữa cơm gia đình lúc nào cũng im lặng và thiếu sự chia sẻ.",
+        "Làm thế nào để kéo bố mẹ lại gần hơn khi lúc nào ba mẹ cũng bận rộn công việc và ít lắng nghe con?",
+        "Con muốn tâm sự với mẹ những chuyện buồn ở trường nhưng sợ mẹ bận rộn không quan tâm.",
+        "Mỗi lần gia đình có chuyện căng thẳng là con lại chọn cách im lặng, xa cách và vào phòng riêng.",
+        "Con khao khát được bố mẹ chủ động quan tâm và hỏi han một câu thay vì chỉ hỏi điểm số."
     ],
     "Áp lực học tập": [
         "Điểm số và kỳ thi đè nặng lên vai mỗi mùa kiểm tra, con sợ làm thầy cô và bố mẹ thất vọng.",
@@ -93,23 +92,22 @@ def init_logs_file():
                         "timestamp": interaction_time.strftime("%Y-%m-%d %H:%M"),
                         "category": chosen_cat,
                         "content": chosen_content,
-                        "forced_topic": chosen_topic  # Gán nhãn trực tiếp chuẩn xác tuyệt đối
+                        "forced_topic": chosen_topic
                     })
             return logs
 
         feature_categories = ["Tâm sự cùng AI", "Tập đối thoại", "Hiểu cảm xúc", "Xem tiến bộ"]
 
-        # GIAO ĐOẠN 1 (01/10/2026 – 14/10/2026): Đúng 334 phản hồi, chia đều 14 ngày
-        # Dẫn đầu rõ rệt: "Kết nối gia đình & Sự quan tâm", tiếp đến "Định hướng nghề nghiệp", "Quyền riêng tư cá nhân"
+        # GIAO ĐOẠN 1 (01/10/2026 – 14/10/2026): 334 phản hồi (Giai đoạn đầu tập trung kết nối gia đình)
         weights_p1 = {
-            "Kết nối gia đình & Sự quan tâm": 130,
+            "Kết nối gia đình & Sự quan tâm": 110,
             "Định hướng nghề nghiệp": 80,
-            "Quyền riêng tư cá nhân": 55,
-            "Áp lực học tập": 25,
-            "Điện thoại, mạng xã hội": 20,
-            "Sinh hoạt và lối sống": 10,
+            "Quyền riêng tư cá nhân": 60,
+            "Áp lực học tập": 35,
+            "Điện thoại, mạng xã hội": 25,
+            "Sinh hoạt và lối sống": 12,
             "Mối quan hệ tình cảm": 8,
-            "Bị so sánh & Thiếu công nhận": 6
+            "Bị so sánh & Thiếu công nhận": 4
         }
         historical_logs = generate_period_logs(
             datetime.datetime(2026, 10, 1),
@@ -119,17 +117,16 @@ def init_logs_file():
             feature_categories
         )
 
-        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): Đúng 182 phản hồi, chia đều 14 ngày (Tổng tích lũy = 516 phản hồi)
-        # Dẫn đầu: "Định hướng nghề nghiệp", tiếp đến "Quyền riêng tư cá nhân", các chủ đề còn lại gần sát nhau
+        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): 182 phản hồi (Giai đoạn sau bứt phá định hướng nghề nghiệp và riêng tư)
         weights_p2 = {
-            "Định hướng nghề nghiệp": 42,
-            "Quyền riêng tư cá nhân": 36,
-            "Áp lực học tập": 24,
+            "Định hướng nghề nghiệp": 70,
+            "Quyền riêng tư cá nhân": 55,
             "Kết nối gia đình & Sự quan tâm": 20,
-            "Điện thoại, mạng xã hội": 18,
-            "Sinh hoạt và lối sống": 15,
-            "Mối quan hệ tình cảm": 14,
-            "Bị so sánh & Thiếu công nhận": 13
+            "Áp lực học tập": 15,
+            "Điện thoại, mạng xã hội": 10,
+            "Sinh hoạt và lối sống": 6,
+            "Mối quan hệ tình cảm": 4,
+            "Bị so sánh & Thiếu công nhận": 2
         }
         historical_logs.extend(generate_period_logs(
             datetime.datetime(2026, 10, 15),
@@ -428,7 +425,6 @@ if st.session_state.current_mode == "Quản trị":
         if "category" in logs_df.columns:
             logs_df["category"] = logs_df["category"].apply(normalize_category)
 
-        # Sử dụng trực tiếp forced_topic để biểu đồ phản ánh đúng tuyệt đối ý đồ
         if "forced_topic" in logs_df.columns:
             logs_df["conflict_topics_list"] = logs_df["forced_topic"].apply(lambda x: [x])
         else:
