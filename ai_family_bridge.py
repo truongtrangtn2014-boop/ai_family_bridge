@@ -13,7 +13,7 @@ if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 
 # --- 2. HỆ THỐNG LƯU TRỮ NHẬT KÝ DÙNG CHUNG (PERSISTENT LOGGING) ---
-LOG_FILE = "interaction_logs_v9.csv"
+LOG_FILE = "interaction_logs_v10.csv"
 
 # Ngân hàng câu hỏi tâm sự thực tế của học sinh khớp với 8 chủ đề chuyên sâu
 topic_samples = {
@@ -80,7 +80,6 @@ def init_logs_file():
                 day_count = base_per_day + (1 if day_idx < remainder else 0)
                 curr_date = start_date + datetime.timedelta(days=day_idx)
                 
-                # Chia đều rải rác trong các khung giờ tự nhiên của ngày đó
                 for _ in range(day_count):
                     hour = random.choice([7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21])
                     minute = random.randint(0, 59)
@@ -118,7 +117,7 @@ def init_logs_file():
             feature_categories
         )
 
-        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): Đúng 182 phản hồi, chia đều 14 ngày (Tổng tích lũy 2 giai đoạn = 516 phản hồi)
+        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): Đúng 182 phản hồi, chia đều 14 ngày (Tổng 516 phản hồi)
         weights_p2 = {
             "Định hướng nghề nghiệp": 50,
             "Quyền riêng tư cá nhân": 40,
