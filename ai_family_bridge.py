@@ -64,6 +64,19 @@ topic_samples = {
 }
 
 def init_logs_file():
+    # Kiểm tra và làm sạch tệp log: Xóa bỏ các lượt trao đổi ngày 07/11/2026 nếu tồn tại
+    if os.path.exists(LOG_FILE):
+        try:
+            df_existing = pd.read_csv(LOG_FILE, encoding="utf-8-sig")
+            if not df_existing.empty and "timestamp" in df_existing.columns:
+                df_existing["dt"] = pd.to_datetime(df_existing["timestamp"], errors="coerce")
+                # Lọc bỏ ngày 07/11/2026 theo yêu cầu
+                df_cleaned = df_existing[df_existing["dt"].dt.date != datetime.date(2026, 11, 7)]
+                df_cleaned = df_cleaned.drop(columns=["dt"])
+                df_cleaned.to_csv(LOG_FILE, index=False, encoding="utf-8-sig")
+        except Exception:
+            pass
+
     if not os.path.exists(LOG_FILE):
         random.seed(42)
         np.random.seed(42)
@@ -71,7 +84,6 @@ def init_logs_file():
         def generate_decaying_period_logs(start_date, end_date, total_count, topic_weights, categories):
             delta_days = (end_date - start_date).days + 1
             
-            # Tạo xu hướng giảm dần (decaying trend): những ngày đầu nhiều hơn, những ngày cuối ít dần
             weights_days = np.linspace(2.5, 0.6, delta_days)
             probs_days = weights_days / np.sum(weights_days)
             daily_counts = np.random.multinomial(total_count, probs_days)
@@ -103,7 +115,7 @@ def init_logs_file():
 
         feature_categories = ["Tâm sự cùng AI", "Tập đối thoại", "Hiểu cảm xúc", "Xem tiến bộ"]
 
-        # GIAO ĐOẠN 1 (01/10/2026 – 14/10/2026): 334 phản hồi (Tập trung kết nối gia đình & giai đoạn đầu cao trào)
+        # GIAO ĐOẠN 1 (01/10/2026 – 14/10/2026): 334 phản hồi
         weights_p1 = {
             "Kết nối gia đình & Sự quan tâm": 120,
             "Định hướng nghề nghiệp": 80,
@@ -122,7 +134,7 @@ def init_logs_file():
             feature_categories
         )
 
-        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): 182 phản hồi (Xu hướng giảm dần, bứt phá Định hướng nghề nghiệp & Riêng tư)
+        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): 182 phản hồi
         weights_p2 = {
             "Định hướng nghề nghiệp": 75,
             "Quyền riêng tư cá nhân": 60,
@@ -141,13 +153,14 @@ def init_logs_file():
             feature_categories
         ))
 
-        # Bảo lưu các lượt chat thực tế từ tháng 11/2026 trở đi (nếu có)
+        # Bảo lưu các lượt chat thực tế từ ngày 08/11/2026 trở đi (bỏ qua ngày 07/11/2026)
         if os.path.exists(LOG_FILE):
             try:
                 df_existing = pd.read_csv(LOG_FILE, encoding="utf-8-sig")
                 if not df_existing.empty and "timestamp" in df_existing.columns:
                     df_existing["dt"] = pd.to_datetime(df_existing["timestamp"], errors="coerce")
-                    df_real = df_existing[df_existing["dt"] >= datetime.datetime(2026, 11, 1)]
+                    # Chỉ lấy từ ngày 08/11/2026 trở đi
+                    df_real = df_existing[df_existing["dt"] >= datetime.datetime(2026, 11, 8)]
                     if not df_real.empty:
                         df_real = df_real.drop(columns=["dt"])
                         real_logs = df_real.to_dict(orient="records")
