@@ -134,16 +134,16 @@ def init_logs_file():
             feature_categories
         )
 
-        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): 182 phản hồi
+        # GIAO ĐOẠN 2 (15/10/2026 – 28/10/2026): 182 phản hồi (Áp lực học tập cao nhất, sau đó đến Định hướng nghề nghiệp)
         weights_p2 = {
-            "Định hướng nghề nghiệp": 75,
-            "Quyền riêng tư cá nhân": 60,
+            "Áp lực học tập": 85,
+            "Định hướng nghề nghiệp": 70,
+            "Quyền riêng tư cá nhân": 45,
             "Kết nối gia đình & Sự quan tâm": 20,
-            "Áp lực học tập": 12,
-            "Điện thoại, mạng xã hội": 8,
-            "Sinh hoạt và lối sống": 4,
-            "Mối quan hệ tình cảm": 2,
-            "Bị so sánh & Thiếu công nhận": 1
+            "Điện thoại, mạng xã hội": 12,
+            "Sinh hoạt và lối sống": 6,
+            "Mối quan hệ tình cảm": 3,
+            "Bị so sánh & Thiếu công nhận": 2
         }
         historical_logs.extend(generate_decaying_period_logs(
             datetime.datetime(2026, 10, 15),
